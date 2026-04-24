@@ -1,6 +1,13 @@
 (function () {
   const AUTH_KEY = "rivex-portal-auth-v1";
-  const BACKGROUND_ASSET_VERSION = "20260423c";
+  const SHARED_ASSET_VERSION = "20260424a";
+  const EXPORT_PAGES = new Set([
+    "index.html",
+    "rivex-group-operating-map.html",
+    "rivex-development-blueprint.html",
+    "rivex-department-task-system.html",
+    "rivex-jim-kok-role.html"
+  ]);
   const INVITES = {
     MOCE86: {
       role: "standard",
@@ -95,7 +102,7 @@
       const link = document.createElement("link");
       link.id = "rivex-video-background-css";
       link.rel = "stylesheet";
-      link.href = `rivex-video-background.css?v=${BACKGROUND_ASSET_VERSION}`;
+      link.href = `rivex-video-background.css?v=${SHARED_ASSET_VERSION}`;
       document.head.appendChild(link);
     }
 
@@ -111,7 +118,7 @@
     layer.setAttribute("aria-hidden", "true");
     layer.innerHTML = `
       <video class="rivex-bg-video" autoplay muted loop playsinline preload="auto">
-        <source src="assets/background.mp4?v=${BACKGROUND_ASSET_VERSION}" type="video/mp4">
+        <source src="assets/background.mp4?v=${SHARED_ASSET_VERSION}" type="video/mp4">
       </video>
       <div class="rivex-bg-mask"></div>
     `;
@@ -134,6 +141,25 @@
         if (retry?.catch) retry.catch(() => {});
       }
     }, { once: true });
+  }
+
+  function injectExportTools() {
+    if (!EXPORT_PAGES.has(currentFileName())) return;
+
+    if (!document.getElementById("rivex-export-css")) {
+      const styleLink = document.createElement("link");
+      styleLink.id = "rivex-export-css";
+      styleLink.rel = "stylesheet";
+      styleLink.href = `rivex-export.css?v=${SHARED_ASSET_VERSION}`;
+      document.head.appendChild(styleLink);
+    }
+
+    if (!document.getElementById("rivex-export-script")) {
+      const script = document.createElement("script");
+      script.id = "rivex-export-script";
+      script.src = `rivex-export.js?v=${SHARED_ASSET_VERSION}`;
+      document.head.appendChild(script);
+    }
   }
 
   function applyRoleView() {
@@ -168,6 +194,7 @@
     injectVideoBackground();
     applyRoleView();
     bindLogout();
+    injectExportTools();
   });
 
   window.RivexAuth = {
