@@ -1,0 +1,2920 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RIVEX 线条里程碑任务系统 / Business Line Milestone Task System</title>
+  <script src="rivex-auth.js"></script>
+  <script>window.RivexAuth && RivexAuth.requireRole("any");</script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f6f3ea;
+      --muted: #aeb8c7;
+      --quiet: #737f90;
+      --night: #05070b;
+      --surface: #0d1118;
+      --surface-2: #131924;
+      --panel: rgba(16, 20, 28, 0.84);
+      --panel-soft: rgba(255, 255, 255, 0.045);
+      --line: rgba(255, 255, 255, 0.12);
+      --line-strong: rgba(255, 255, 255, 0.24);
+      --cyan: #36d6d8;
+      --gold: #e4b85c;
+      --violet: #8f7cff;
+      --green: #68d391;
+      --rose: #ff6b7a;
+      --orange: #ff9f43;
+      --blue: #4ea1ff;
+      --radius: 8px;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(5, 7, 11, 0.96), rgba(7, 9, 13, 0.985)),
+        linear-gradient(135deg, rgba(54, 214, 216, 0.08), transparent 30%, rgba(228, 184, 92, 0.07) 76%, transparent),
+        linear-gradient(90deg, rgba(143, 124, 255, 0.06), transparent 46%, rgba(104, 211, 145, 0.05)),
+        #05070b;
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+      background-size: 68px 68px;
+      mask-image: linear-gradient(to bottom, black, transparent 76%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      color: inherit;
+      font: inherit;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    p,
+    li,
+    span,
+    strong {
+      overflow-wrap: anywhere;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    p {
+      margin-top: 0;
+    }
+
+    .page-shell {
+      width: min(1440px, calc(100% - clamp(24px, 4vw, 48px)));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      border-bottom: 1px solid var(--line);
+      background: rgba(5, 7, 11, 0.88);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar-inner {
+      min-height: 72px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(228, 184, 92, 0.46);
+      background: linear-gradient(135deg, rgba(228, 184, 92, 0.24), rgba(54, 214, 216, 0.12));
+      font-weight: 900;
+      color: var(--gold);
+      border-radius: var(--radius);
+      flex: 0 0 auto;
+    }
+
+    .brand-title {
+      display: block;
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+
+    .brand-subtitle {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav a,
+    .ghost-link {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      padding: 9px 11px;
+      border-radius: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+    }
+
+    .nav a:hover,
+    .ghost-link:hover {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--line);
+    }
+
+    .ghost-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button.ghost-link {
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: max-content;
+    }
+
+    .logout-link {
+      color: var(--gold);
+      border-color: rgba(228, 184, 92, 0.3);
+    }
+
+    .hero {
+      padding: 38px 0 26px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(360px, 0.74fr);
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .eyebrow {
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 52px;
+      line-height: 1.04;
+      letter-spacing: 0;
+      max-width: 980px;
+      margin-bottom: 18px;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 18px;
+      max-width: 920px;
+      margin-bottom: 0;
+    }
+
+    .hero-panel {
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03)),
+        rgba(16, 20, 28, 0.82);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      min-width: 0;
+      display: grid;
+      gap: 14px;
+    }
+
+    .hero-panel h2 {
+      font-size: 20px;
+      margin-bottom: 0;
+    }
+
+    .hero-panel p {
+      color: var(--muted);
+      margin-bottom: 0;
+      font-size: 14px;
+    }
+
+    .route-map {
+      display: grid;
+      gap: 10px;
+    }
+
+    .route-step {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .route-number {
+      border: 1px solid color-mix(in srgb, var(--accent) 54%, rgba(255, 255, 255, 0.12));
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--accent) 13%, rgba(255, 255, 255, 0.02));
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      min-height: 42px;
+    }
+
+    .route-copy {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 3px 0 10px;
+    }
+
+    .route-copy strong {
+      display: block;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .route-copy span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 4px auto 22px;
+    }
+
+    .metric-tile {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 14px;
+      min-height: 128px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-tile::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+
+    .metric-tile strong {
+      display: block;
+      color: var(--accent);
+      font-size: 30px;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+
+    .metric-tile span {
+      color: var(--muted);
+      display: block;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .section {
+      padding: 68px 0;
+      border-top: 1px solid var(--line);
+      scroll-margin-top: 92px;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(280px, 0.48fr);
+      gap: 32px;
+      align-items: end;
+      margin-bottom: 24px;
+    }
+
+    .section h2 {
+      font-size: 38px;
+      line-height: 1.12;
+      margin-bottom: 12px;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .section-kicker {
+      color: var(--gold);
+      font-weight: 900;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin-bottom: 8px;
+    }
+
+    .section-note {
+      border-left: 3px solid var(--cyan);
+      padding: 12px 0 12px 16px;
+      color: var(--muted);
+    }
+
+    .milestone-rail {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .milestone-node {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent) 12%, transparent), rgba(255, 255, 255, 0.03)),
+        rgba(13, 17, 24, 0.78);
+      min-height: 168px;
+      padding: 14px;
+      display: grid;
+      align-content: space-between;
+      gap: 12px;
+    }
+
+    .milestone-node b {
+      color: var(--accent);
+      display: block;
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    .milestone-node strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .milestone-node span,
+    .milestone-node small {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .progress-track {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.09);
+      overflow: hidden;
+    }
+
+    .progress-track i {
+      display: block;
+      width: var(--progress);
+      height: 100%;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .control-panel {
+      position: sticky;
+      top: 72px;
+      z-index: 45;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(5, 7, 11, 0.78);
+      backdrop-filter: blur(18px);
+    }
+
+    .control-inner {
+      min-height: 58px;
+      display: grid;
+      grid-template-columns: minmax(260px, 0.34fr) minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .search-input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.055);
+      min-height: 40px;
+      padding: 9px 12px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(54, 214, 216, 0.1);
+    }
+
+    .filter-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      min-width: 0;
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 6px;
+      align-items: center;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .filter-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-button {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      border-radius: 6px;
+      min-height: 36px;
+      padding: 7px 9px;
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .filter-button.active,
+    .filter-button:hover {
+      color: var(--ink);
+      border-color: var(--accent, var(--cyan));
+      background: color-mix(in srgb, var(--accent, var(--cyan)) 14%, transparent);
+    }
+
+    .board-status {
+      color: var(--quiet);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .department-filter-menu {
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .department-filter-menu summary {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      list-style: none;
+      white-space: nowrap;
+    }
+
+    .department-filter-menu summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .department-filter-menu summary::after {
+      content: "+";
+      color: var(--cyan);
+      font-weight: 900;
+    }
+
+    .department-filter-menu[open] summary::after {
+      content: "-";
+    }
+
+    .department-filter-menu[open] summary {
+      color: var(--ink);
+      border-color: rgba(54, 214, 216, 0.5);
+      background: rgba(54, 214, 216, 0.08);
+    }
+
+    .department-filter-popover {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      z-index: 70;
+      width: min(720px, calc(100vw - 28px));
+      max-height: 280px;
+      overflow: auto;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(8, 11, 16, 0.98);
+      box-shadow: var(--shadow);
+      padding: 10px;
+    }
+
+    .department-filter-popover .filter-row {
+      flex-wrap: wrap;
+      overflow: visible;
+    }
+
+    .department-board {
+      overflow-x: auto;
+      padding-bottom: 14px;
+      scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+      scrollbar-width: thin;
+    }
+
+    .department-board::-webkit-scrollbar {
+      height: 10px;
+    }
+
+    .department-board::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 999px;
+    }
+
+    .department-board::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.24);
+      border-radius: 999px;
+    }
+
+    .department-matrix {
+      min-width: 1680px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .board-header-row,
+    .matrix-status-row {
+      display: grid;
+      grid-template-columns: 240px repeat(4, minmax(330px, 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .board-header-row {
+      position: relative;
+      z-index: 4;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+        rgba(5, 7, 11, 0.88);
+      padding: 10px;
+    }
+
+    .board-header-cell {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      min-height: 76px;
+      display: grid;
+      align-content: center;
+      gap: 6px;
+      padding: 10px;
+    }
+
+    .board-header-cell:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 12;
+      background:
+        linear-gradient(180deg, rgba(54, 214, 216, 0.08), rgba(255, 255, 255, 0.04)),
+        rgba(8, 11, 16, 0.98);
+      box-shadow: 12px 0 22px rgba(0, 0, 0, 0.16);
+    }
+
+    .matrix-status-row {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--row-tone) 7%, transparent), rgba(255, 255, 255, 0.025)),
+        rgba(13, 17, 24, 0.58);
+      padding: 10px;
+      scroll-margin-top: 174px;
+    }
+
+    .status-row-head {
+      position: sticky;
+      left: 0;
+      z-index: 10;
+      border: 1px solid color-mix(in srgb, var(--row-tone) 42%, rgba(255, 255, 255, 0.12));
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--row-tone) 14%, transparent), rgba(255, 255, 255, 0.035)),
+        rgba(9, 12, 17, 0.98);
+      box-shadow: 12px 0 22px rgba(0, 0, 0, 0.16);
+      padding: 14px;
+      min-height: 190px;
+      display: grid;
+      align-content: start;
+      gap: 8px;
+    }
+
+    .status-row-head strong {
+      color: var(--row-tone);
+      display: block;
+      font-size: 18px;
+      line-height: 1.24;
+    }
+
+    .status-row-head span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .line-cell {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.032);
+      min-height: 100%;
+      padding: 10px;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      max-height: 560px;
+      overflow-y: auto;
+      scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+      scrollbar-width: thin;
+    }
+
+    .line-cell-head {
+      min-height: 42px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      padding: 0 2px 8px;
+    }
+
+    .line-cell-head strong {
+      color: var(--line-tone);
+      font-size: 14px;
+    }
+
+    .line-cell-head span {
+      color: var(--quiet);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .line-department-list {
+      color: var(--muted);
+      display: block;
+      font-size: 11px;
+      line-height: 1.4;
+      margin-top: -2px;
+    }
+
+    .board-header-cell strong {
+      color: var(--status, var(--accent, var(--cyan)));
+      font-size: 13px;
+    }
+
+    .board-header-cell span {
+      color: var(--quiet);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .department-block {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--accent) 8%, transparent), rgba(255, 255, 255, 0.025)),
+        rgba(13, 17, 24, 0.6);
+      padding: 10px;
+      scroll-margin-top: 174px;
+    }
+
+    .department-block.hidden {
+      display: none;
+    }
+
+    .department-head {
+      position: sticky;
+      left: 0;
+      z-index: 8;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      align-content: start;
+      margin-bottom: 0;
+      border: 1px solid color-mix(in srgb, var(--accent) 36%, rgba(255, 255, 255, 0.12));
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent) 13%, transparent), rgba(255, 255, 255, 0.035)),
+        rgba(9, 12, 17, 0.96);
+      box-shadow: 12px 0 22px rgba(0, 0, 0, 0.16);
+      padding: 14px;
+    }
+
+    .department-title-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .department-label {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .department-head h3 {
+      font-size: 21px;
+      line-height: 1.18;
+      margin-bottom: 8px;
+    }
+
+    .department-head p {
+      color: var(--muted);
+      margin-bottom: 0;
+      max-width: 100%;
+      font-size: 13px;
+      line-height: 1.48;
+    }
+
+    .owner-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: flex-start;
+    }
+
+    .owner-pill,
+    .tag-pill {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--muted);
+      padding: 6px 8px;
+      font-size: 12px;
+      line-height: 1.2;
+    }
+
+    .owner-pill.primary {
+      color: var(--ink);
+      border-color: color-mix(in srgb, var(--accent) 48%, rgba(255, 255, 255, 0.12));
+      background: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.02));
+      font-weight: 800;
+    }
+
+    .task-lanes {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+
+    .task-lane {
+      min-width: 0;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.032);
+      min-height: 100%;
+    }
+
+    .lane-head {
+      min-height: 42px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      padding: 0 2px 8px;
+    }
+
+    .lane-head strong {
+      color: var(--status);
+      display: block;
+      font-size: 14px;
+    }
+
+    .lane-head span {
+      color: var(--quiet);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .task-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.028)),
+        rgba(13, 17, 24, 0.8);
+      padding: 0;
+      min-height: 0;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .task-card.is-purpose {
+      border-color: rgba(78, 161, 255, 0.44);
+      background:
+        linear-gradient(180deg, rgba(78, 161, 255, 0.12), rgba(255, 255, 255, 0.028)),
+        rgba(13, 17, 24, 0.84);
+    }
+
+    .task-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 3px;
+      background: var(--status);
+    }
+
+    .task-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .task-summary {
+      cursor: pointer;
+      list-style: none;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+      padding: 10px 12px 8px 15px;
+    }
+
+    .task-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .task-summary::after {
+      content: "+";
+      width: 20px;
+      height: 20px;
+      border: 1px solid color-mix(in srgb, var(--status) 46%, transparent);
+      border-radius: 6px;
+      color: var(--status);
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 900;
+      grid-column: 2;
+      grid-row: 2;
+      justify-self: end;
+      margin-top: -2px;
+    }
+
+    .task-card[open] .task-summary::after {
+      content: "-";
+    }
+
+    .task-card h4 {
+      margin-bottom: 0;
+      font-size: 14px;
+      line-height: 1.32;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .task-card[open] h4 {
+      -webkit-line-clamp: unset;
+    }
+
+    .task-status {
+      border: 1px solid color-mix(in srgb, var(--status) 45%, transparent);
+      border-radius: 6px;
+      color: var(--status);
+      background: color-mix(in srgb, var(--status) 12%, rgba(255, 255, 255, 0.02));
+      padding: 3px 6px;
+      font-size: 10px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .task-card p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      margin-bottom: 0;
+    }
+
+    .task-compact-meta {
+      color: var(--quiet);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 0 12px 10px 15px;
+    }
+
+    .purpose-badge {
+      border: 1px solid rgba(78, 161, 255, 0.48);
+      border-radius: 6px;
+      background: rgba(78, 161, 255, 0.12);
+      color: var(--blue);
+      font-size: 10px;
+      font-weight: 900;
+      padding: 2px 6px;
+      text-transform: uppercase;
+    }
+
+    .advisor-badge {
+      border: 1px solid rgba(156, 122, 255, 0.5);
+      border-radius: 6px;
+      background: rgba(156, 122, 255, 0.12);
+      color: var(--violet);
+      font-size: 10px;
+      font-weight: 900;
+      padding: 2px 6px;
+      text-transform: uppercase;
+    }
+
+    .task-compact-meta b {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .task-detail {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: grid;
+      gap: 9px;
+      padding: 10px 12px 12px 15px;
+    }
+
+    .task-meta {
+      display: grid;
+      gap: 6px;
+      color: var(--quiet);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .task-meta b {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .task-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-pill {
+      color: var(--quiet);
+      font-size: 11px;
+      padding: 5px 7px;
+    }
+
+    .empty-state {
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      color: var(--quiet);
+      min-height: 96px;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .dependency-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .dependency-stage {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 14px;
+      min-height: 210px;
+    }
+
+    .dependency-stage h3 {
+      color: var(--accent);
+      font-size: 17px;
+      line-height: 1.25;
+      margin-bottom: 8px;
+    }
+
+    .dependency-stage p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .dependency-stage ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .dependency-stage li {
+      margin: 6px 0;
+    }
+
+    .people-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .person-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 14px;
+      min-height: 150px;
+    }
+
+    .person-card.purpose-target {
+      border-color: rgba(78, 161, 255, 0.5);
+      background:
+        linear-gradient(180deg, rgba(78, 161, 255, 0.13), rgba(255, 255, 255, 0.035)),
+        rgba(255, 255, 255, 0.04);
+      box-shadow: 0 18px 44px rgba(78, 161, 255, 0.08);
+    }
+
+    .person-card.is-founder {
+      border-color: rgba(223, 180, 90, 0.58);
+      background:
+        linear-gradient(180deg, rgba(223, 180, 90, 0.16), rgba(255, 255, 255, 0.035)),
+        rgba(255, 255, 255, 0.04);
+      box-shadow: 0 18px 44px rgba(223, 180, 90, 0.08);
+    }
+
+    .person-card.is-advisor {
+      border-color: rgba(156, 122, 255, 0.48);
+      background:
+        linear-gradient(180deg, rgba(156, 122, 255, 0.12), rgba(255, 255, 255, 0.035)),
+        rgba(255, 255, 255, 0.04);
+      box-shadow: 0 18px 44px rgba(156, 122, 255, 0.07);
+    }
+
+    .person-card strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .person-card em {
+      color: var(--accent);
+      display: block;
+      font-style: normal;
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .person-card span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .person-card .credential-line {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--ink);
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+
+    .person-card .credential-line b {
+      color: var(--accent);
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .cadence-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .cadence-item {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      min-height: 168px;
+      padding: 14px;
+    }
+
+    .cadence-item h3 {
+      color: var(--accent);
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .cadence-item p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 0;
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      color: var(--quiet);
+      padding: 24px 0;
+      font-size: 13px;
+    }
+
+    .footer .page-shell {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 1180px) {
+      .hero,
+      .section-head,
+      .department-head {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-grid,
+      .task-lanes,
+      .people-grid,
+      .cadence-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .dependency-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .owner-strip {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .topbar-inner,
+      .control-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar-inner {
+        padding: 12px 0;
+      }
+
+      .nav {
+        justify-content: flex-start;
+      }
+
+      .hero {
+        padding-top: 24px;
+      }
+
+      h1 {
+        font-size: 38px;
+      }
+
+      .section h2 {
+        font-size: 30px;
+      }
+
+      .metric-grid,
+      .milestone-rail,
+      .task-lanes,
+      .dependency-grid,
+      .people-grid,
+      .cadence-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .control-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .page-shell {
+        width: min(100% - 22px, 1440px);
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+
+      .hero-panel,
+      .metric-tile,
+      .task-card,
+      .dependency-stage,
+      .person-card,
+      .cadence-item {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner page-shell">
+      <a class="brand" href="index.html" aria-label="返回 RIVEX 入口">
+        <span class="brand-mark">R</span>
+        <span>
+          <span class="brand-title">RIVEX Group</span>
+          <span class="brand-subtitle">线条里程碑任务系统</span>
+        </span>
+      </a>
+      <nav class="nav" aria-label="任务系统导航">
+        <a href="#overview">总控</a>
+        <a href="#milestones">里程碑</a>
+        <a href="#board">任务总表</a>
+        <a href="#dependencies">依赖关系</a>
+        <a href="#people">人员矩阵</a>
+        <a href="#cadence">推进节奏</a>
+      </nav>
+      <div class="top-actions" aria-label="页面操作">
+        <a class="ghost-link" href="rivex-development-blueprint.html">返回蓝图</a>
+        <a class="ghost-link" href="index.html">返回入口（Choose Page）</a>
+        <button class="ghost-link logout-link" type="button" data-logout>登出（Log out）</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero page-shell" id="overview">
+      <div>
+        <div class="eyebrow">RIVEX Business Line Milestone Task System</div>
+        <h1>以产品开发为总控，把四条业务线同步到白皮书与落地蓝图。</h1>
+        <p class="lead">
+          这张页面不再把部门拆得过细，而是把 RIVEX 当前工作整合成四条主线：产品开发线、标准与信任线、金融与商业化线、治理支撑线。WebApp 与 iOS App 已经上线可用，并开始有早期用户；当前重点不是证明产品能不能跑，而是定义什么叫「能用 / 好用」，并把数据补全、体验硬化和验收标准持续细化。
+        </p>
+      </div>
+      <aside class="hero-panel" aria-label="产品开发总控路线">
+        <div>
+          <h2>分类原则</h2>
+          <p>产品开发总控不替代执行团队，而是把各模块输出接入同一条发布里程碑：WebApp / iOS 已上线可用后，先定义可用性、好用性、数据完整度和用户反馈闭环，再补鉴定、风控、链上护照和商业化。</p>
+        </div>
+        <div class="route-map">
+          <div class="route-step" style="--accent: var(--cyan)">
+            <span class="route-number">01</span>
+            <div class="route-copy">
+              <strong>产品开发线</strong>
+              <span>WebApp / iOS 已上线可用；下一步统一“能用 / 好用”标准、PRD、体验、工程平台和数据验收。</span>
+            </div>
+          </div>
+          <div class="route-step" style="--accent: var(--gold)">
+            <span class="route-number">02</span>
+            <div class="route-copy">
+              <strong>标准与信任线</strong>
+              <span>鉴定、Origin、RRS、证据包、区块链护照和合约分润。</span>
+            </div>
+          </div>
+          <div class="route-step" style="--accent: var(--green)">
+            <span class="route-number">03</span>
+            <div class="route-copy">
+              <strong>金融与商业化线</strong>
+              <span>资金方、借贷风控、市场交易、托管保险和合作网络。</span>
+            </div>
+          </div>
+          <div class="route-step" style="--accent: var(--rose)">
+            <span class="route-number">04</span>
+            <div class="route-copy">
+              <strong>治理支撑线</strong>
+              <span>法务合规、资安、审计、数据治理和跨线条决策机制。</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="page-shell" aria-label="任务系统指标">
+      <div class="metric-grid" id="metricGrid"></div>
+    </section>
+
+    <section class="section" id="milestones">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Milestone Spine</div>
+            <h2>六个发布闸口：从 MVP 到市场、护照和金融规模化。</h2>
+            <p>每条线的任务都应该映射到一个里程碑；没有映射的任务，先回到产品开发总控重新定义优先级。</p>
+          </div>
+          <p class="section-note">同步口径来自现有白皮书营运地图和合伙人落地协作蓝图。WebApp / iOS App 已上线可用；任务状态重点区分“已上线可用”和“仍需定义好用标准 / 数据补全 / 风控合规”的部分。</p>
+        </div>
+        <div class="milestone-rail" id="milestoneRail"></div>
+      </div>
+    </section>
+
+    <div class="control-panel" id="board">
+      <div class="control-inner page-shell">
+        <input class="search-input" id="searchInput" type="search" placeholder="搜索：鉴定、区块链、LTV、PRD、托管、AIGC、亨德利..." aria-label="搜索任务">
+        <div class="filter-wrap">
+          <div class="filter-row" id="statusFilters" aria-label="状态筛选"></div>
+          <details class="department-filter-menu">
+            <summary>线条筛选</summary>
+            <div class="department-filter-popover">
+              <div class="filter-row" id="departmentFilters" aria-label="线条筛选"></div>
+            </div>
+          </details>
+          <div class="board-status" id="boardStatus">Loading board</div>
+        </div>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Business Line Board</div>
+            <h2>横向总控表：第一行是所有线条，下面按任务阶段展开。</h2>
+            <p>表格第一行放产品开发线、标准与信任线、金融与商业化线、治理支撑线；第二行放正在进行中的任务，第三行放未来任务，最后保留已完成沉淀。在窄屏上可以左右拖动查看完整表格。</p>
+          </div>
+          <p class="section-note">当前页面先列任务大项；后续可以把每张卡拆成 Checklist、截止日期、风险等级、会议纪要和附件链接。</p>
+        </div>
+        <div class="department-board" id="departmentBoard"></div>
+      </div>
+    </section>
+
+    <section class="section" id="dependencies">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Dependency Map</div>
+            <h2>关键依赖：产品不能跳过标准，金融不能跳过鉴定和合规。</h2>
+            <p>这部分是给产品开发总控用的：一旦某个模块卡住，就知道它会影响后续哪条产品线。</p>
+          </div>
+          <p class="section-note">尤其是鉴定与区块链护照：它们不是两个孤立团队，而是一条“资产可信资料 → 可追溯协议 → 金融风控材料”的连续链路。</p>
+        </div>
+        <div class="dependency-grid">
+          <article class="dependency-stage" style="--accent: var(--cyan)">
+            <h3>1. 产品入口与数据输入</h3>
+            <p>先让资产能被创建、识别、管理、追踪，并进入统一资产卡。</p>
+            <ul>
+              <li>App / WebApp / 管理后台</li>
+              <li>AI 识别、资产问答、资产卡</li>
+              <li>手表、红酒、成交数据与用户意向</li>
+            </ul>
+          </article>
+          <article class="dependency-stage" style="--accent: var(--gold)">
+            <h3>2. 鉴定与标准化</h3>
+            <p>让资产从“用户上传资料”变成“可被审计和复核的证据包”。</p>
+            <ul>
+              <li>LegitApp 与线下鉴定流程</li>
+              <li>Origin 扫描、RRS、证据包</li>
+              <li>品相、真伪、来源、交易前认证</li>
+            </ul>
+          </article>
+          <article class="dependency-stage" style="--accent: var(--blue)">
+            <h3>3. 区块链护照协议</h3>
+            <p>把标准化结果转成可查验、可追溯、可分润的链上 / 链下架构。</p>
+            <ul>
+              <li>资产 ID、metadata、哈希和隐私边界</li>
+              <li>护照铸造、追加、作废、重铸</li>
+              <li>智能合约分润和节点收益账本</li>
+            </ul>
+          </article>
+          <article class="dependency-stage" style="--accent: var(--green)">
+            <h3>4. 金融与市场执行</h3>
+            <p>在鉴定、估值、托管和合规成熟后，再进入真实金融产品。</p>
+            <ul>
+              <li>LTV、RRS、清算价值和授信政策</li>
+              <li>资金方、第三方财务公司、借贷后台</li>
+              <li>交易前认证、放盘、撮合和所有权变更</li>
+            </ul>
+          </article>
+          <article class="dependency-stage" style="--accent: var(--rose)">
+            <h3>5. 治理与安全闭环</h3>
+            <p>金融、交易、护照节点和跨境合作上线前必须经过治理闸口。</p>
+            <ul>
+              <li>法务合规、KYC / AML、用户披露</li>
+              <li>资安、审计日志、权限和备份</li>
+              <li>产品、风险、鉴定、协议委员会</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="people">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">People Matrix</div>
+            <h2>核心主管、未来合伙人与联席顾问矩阵。</h2>
+            <p>这里不展示全员执行名单，只展示能够代表战略、产品、技术、资金、增长与标准化可信度的核心层级，并补充相关学历与资历亮点。</p>
+          </div>
+          <p class="section-note">这部分主要给未来合伙人快速理解 RIVEX 的核心班底：谁负责战略资源、谁保证产品交付、谁搭技术底座、谁推动资金与增长，谁为 Origin / RRS / Passport 标准化提供外部技术与产品化背书。学历与资历亮点以已整理 CV、内部资料和当前蓝图为基础；联席顾问身份已确认。<span data-jim-only> Jim 的准确 target 是 CSO / Partner。</span></p>
+        </div>
+        <div class="people-grid" id="peopleGrid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="cadence">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Operating Rhythm</div>
+            <h2>建议的任务推进节奏。</h2>
+            <p>任务系统要可视化，也要能被管理。下面四个节奏可以直接变成每周会议和月度检查模板。</p>
+          </div>
+          <p class="section-note">后续补细项时，建议每张任务卡都补：DRI、参与人、截止日期、验收标准、依赖线条 / 模块、风险等级和最近一次更新。</p>
+        </div>
+        <div class="cadence-grid">
+          <article class="cadence-item" style="--accent: var(--cyan)">
+            <h3>每周产品开发站会</h3>
+            <p>产品开发总控只看 M0-M2：演示路径、体验硬化、数据质量、工程发布风险和需要管理层决策的事项。</p>
+          </article>
+          <article class="cadence-item" style="--accent: var(--gold)">
+            <h3>每两周鉴定与协议评审</h3>
+            <p>鉴定标准部和区块链护照架构部一起评审：证据包、metadata、RRS、链上 / 链下边界和隐私边界。</p>
+          </article>
+          <article class="cadence-item" style="--accent: var(--green)">
+            <h3>每月金融与合作方闸口</h3>
+            <p>金融风控、资金方、第三方财务公司、法务合规和托管运营共同决定哪些内容只能作为原型展示，哪些可以进入真实试点。</p>
+          </article>
+          <article class="cadence-item" style="--accent: var(--rose)">
+            <h3>月度治理复盘</h3>
+            <p>复盘跨线条依赖、待指派岗位、合规风险、资安要求和外部合作方状态，更新下一版任务看板。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="page-shell">
+      <span>RIVEX 线条里程碑任务系统 / Business Line Milestone Task System</span>
+      <span>产品开发总控 → 标准与信任 → 金融商业化 → 治理支撑</span>
+    </div>
+  </footer>
+
+  <script>
+    const statusMeta = {
+      done: { label: "已完成", tone: "var(--green)" },
+      now: { label: "进行中", tone: "var(--cyan)" },
+      next: { label: "下一步", tone: "var(--gold)" },
+      future: { label: "未来规划", tone: "var(--violet)" }
+    };
+
+    const milestones = [
+      {
+        id: "M0",
+        title: "MVP 可演示核心",
+        status: "已上线可用",
+        progress: "94%",
+        accent: "var(--green)",
+        detail: "WebApp 与 iOS App 已上线可用，AI 识别、资产卡和资产管理已能串起真实使用与演示。"
+      },
+      {
+        id: "M1",
+        title: "能用 / 好用标准硬化",
+        status: "进行中",
+        progress: "62%",
+        accent: "var(--cyan)",
+        detail: "定义可用性、好用性、早期用户反馈、跨端体验、价格图表、空状态、多语言和演示验收清单。"
+      },
+      {
+        id: "M2",
+        title: "数据底座与治理",
+        status: "清洗中",
+        progress: "46%",
+        accent: "var(--gold)",
+        detail: "数据库持续补全：手表、红酒、成交数据、字段标准化、去重和质量报告。"
+      },
+      {
+        id: "M3",
+        title: "鉴定与信任标准",
+        status: "线上跑通 / 线下待合作",
+        progress: "38%",
+        accent: "var(--violet)",
+        detail: "LegitApp 联动已跑通，亨德利、线下 SOP、证据包和人工复核待落地。"
+      },
+      {
+        id: "M4",
+        title: "借贷风控闭环",
+        status: "需决策",
+        progress: "24%",
+        accent: "var(--orange)",
+        detail: "LTV、RRS、第三方财务公司、清算规则、合规文件和资金方口径。"
+      },
+      {
+        id: "M5",
+        title: "市场、护照与规模化",
+        status: "后置启动",
+        progress: "14%",
+        accent: "var(--rose)",
+        detail: "市场交易、数字孪生护照、智能合约分润、托管保险和合作节点。"
+      }
+    ];
+
+    const people = [
+      {
+        name: "Yik Huang",
+        role: "创始人 / MOCE Capital 管理合伙人，负责战略、资金、投资判断与关键外部合作",
+        area: "创始人 / MOCE Capital / 战略总控",
+        accent: "var(--gold)",
+        spotlight: true,
+        modules: "把 RIVEX 放在 MOCE Capital 的资产、资金、产业与技术网络里推进：从高端收藏品资源、资金方语言、项目投资判断到产品路线，形成可被合伙人和机构理解的战略主线。",
+        credential: "USC Marshall 商学学士；MIT Professional Education No Code AI and Machine Learning。MOCE Capital 管理合伙人，投资与陪跑 30+ 项目，覆盖中国供应链出海、智能新制造、机器人、Web3、AI 等方向；过往经历包括 J.P. Morgan Private Bank、中信证券香港财富管理、顺豪投资与国元资本投行，兼具投资、融资、私人银行、自营投资与资产管理视角。"
+      },
+      {
+        name: "Jim Kok",
+        role: "拟确认定位：策略长 / 合伙人（CSO / Partner），覆盖资产标准化、系统化协议、链上交易分润、金融化与结构化信用",
+        area: "Target: CSO / Partner / MOCE Partner",
+        accent: "var(--blue)",
+        purpose: true,
+        jimOnly: true,
+        modules: "Purpose to confirm：围绕资产标准、Origin / Passport、系统化工作流、链上交易与分润账本、节点经济、金融化 KPI、机构沟通节奏、第三方财务公司过渡、RWA / ABS 可选路径进行角色边界确认。",
+        credential: "待确认口径：Yale MBA；USC Mathematical Finance 硕士与 Computer Science 学士；CFA。经历覆盖 KPMG Advisory、J.P. Morgan structured derivatives、IBM、京东金融 / 京东数科、Micro Connect 与 Lingfeng Capital，重点匹配标准化金融产品、结构化信用、链上资产基础设施、私募信贷和机构资金。"
+      },
+      {
+        name: "王献冠",
+        role: "RIVEX 联席顾问 / Origin & Passport 产品化顾问，支持确权扫描硬件、SDK/API、第三方节点采用与产业合作路径",
+        area: "联席顾问 / Origin Passport",
+        accent: "var(--violet)",
+        advisor: true,
+        modules: "补强 RIVEX 标准化层的产品化能力：把 Origin 扫描、Digital Twin Passport、节点流程和开发者 / 商家采用，包装成可落地的设备包、接口规范和行业合作方案。",
+        credential: "中国科学技术大学博士。公开资料显示其曾任北京数码视讯技术组长，2014 年起任职奥比中光，并出现 AIoT 事业部总经理助理、监事、视觉生态产品线总经理、CEO 助理等职务表述；相关经历覆盖 3D 视觉硬件、SDK/API、开发者生态、产业合作和 Femto / Microsoft / NVIDIA 合作线。"
+      },
+      {
+        name: "刘贤焯",
+        role: "RIVEX 联席顾问 / Origin & RRS 3D 视觉算法顾问，支持深度相机标定、3D 重建、SLAM、AI 鉴定与节点技术标准",
+        area: "联席顾问 / 3D Vision & RRS",
+        accent: "var(--violet)",
+        advisor: true,
+        modules: "补强 RIVEX 标准化层的技术正确性：为 Origin 扫描技术路线、RRS 评级模型、3D 特征指纹、AI 鉴定和授权节点质检流程提供顾问支持。",
+        credential: "博士。曾以奥比中光研究院 3D 视觉实验室主任、机器人与 AI 开发者产品线总经理等身份出现；方向覆盖深度估计、3D 骨骼跟踪、多模态识别、3D 重建、SLAM 与机器人视觉，并列有多项深度相机、标定和温度误差校正相关专利。"
+      },
+      {
+        name: "Ruilin Zhao",
+        role: "产品开发总控，负责产品、工程节奏、借贷风控与数据管线",
+        area: "产品开发总控",
+        accent: "var(--cyan)",
+        modules: "把战略拆成 PRD、发布节奏、跨端验收和可展示产品，是 RIVEX 从想法到可用系统的交付中枢。",
+        credential: "University of Pennsylvania 数据科学硕士；UIUC Statistics 本科 + CS Minor。6+ 年 fintech 数据科学与风控经验；曾在 PayPal 负责风险实验框架与 scam 监控，也覆盖 AmEx 数字钱包和 CNP 欺诈策略。"
+      },
+      {
+        name: "Zhenxin Huang",
+        role: "技术架构负责人，负责多端交付、后端架构和 AI workflow",
+        area: "工程 / AI",
+        accent: "var(--blue)",
+        modules: "支撑 WebApp、后端、AI 工作流和鉴定链路，把资产数据、识别能力和产品体验连接到同一套技术底座。",
+        credential: "NUS 计算机科学荣誉学士；NTU MSAI 硕士在读。全栈架构、AI 平台与多端研发背景；带 5-6 人团队搭建 RIVEX AI 资产识别平台，2 个月交付 FS-Portal 并上线 Web / iOS / Android。"
+      },
+      {
+        name: "Jason Li",
+        role: "移动端、增长与金融运营协同负责人，负责 iOS、AIGC 内容、上线推广与流程自动化",
+        area: "移动端 / 增长 / 金融运营",
+        accent: "var(--green)",
+        modules: "负责移动端体验、AIGC 增长内容、LegitApp 鉴定联动和外部展示节奏，同时把金融机构流程、抵押品与风险数据意识带进产品运营。",
+        credential: "Warwick MSc Management（Merit）；Sheffield BA Philosophy（2:1）。曾任 UBS AG Prime Brokerage Collateral Specialist，负责抵押品流程、风险暴露数据工具、复杂 workflow 简化和自动化；在 MOCE Capital 主导 WeChat / Instagram / Rednote 数字生态从 0 到 1，周稳定自然流量 2 万+，并开发 RIVEX iOS 原生版及品牌视觉、视频资产。"
+      },
+      {
+        name: "Neo Huang",
+        role: "资金视角与增长协同，负责投资叙事、AIGC 推广和外部资源补位",
+        area: "增长 / 资金协同",
+        accent: "var(--green)",
+        modules: "提供资金方视角、市场传播和增长协同，帮助 RIVEX 把产品能力转成可被外部理解的融资与市场叙事。",
+        credential: "新加坡国立大学商业分析硕士（MSBA）。具备 6 年 A 股、3 年美股、9 年加密货币交易经验；曾任 OPIM / Jefferies 体系基金经理，管理 1000 万美元+ 量化对冲基金，覆盖多空对冲、统计套利、链上策略和衍生品。"
+      }
+    ];
+
+    const departments = [
+      {
+        id: "product-pmo",
+        group: "产品开发线",
+        name: "产品开发总控部",
+        english: "Product Development PMO",
+        accent: "var(--cyan)",
+        lead: "Ruilin Zhao / Yik Huang",
+        people: ["Ruilin Zhao", "Yik Huang", "Jason Li", "Zhenxin Huang", "Zhou Junfei"],
+        charter: "把白皮书和蓝图拆成 PRD、排期、验收标准、跨端体验和发布闸口，确保所有任务都能回到产品里程碑。",
+        tasks: {
+          done: [
+            {
+              title: "WebApp / iOS App 已上线可用",
+              outcome: "WebApp 与 iOS App 已经上线可用，手表识别、对话建议、资产卡和资产管理可以进入真实使用；目前已有早期用户开始使用，演示链路也能完整跑通。",
+              owner: "Ruilin Zhao / Jason Li / Zhenxin Huang",
+              milestone: "M0",
+              deps: "工程平台、AI 识别、资产管理",
+              tags: ["上线", "WebApp", "iOS", "早期用户"]
+            },
+            {
+              title: "蓝图模块与 DRI 口径初步整理",
+              outcome: "现有蓝图已经把 12 个产品、数据、鉴定、金融与运营模块拆成状态、负责人和卡点。",
+              owner: "Ruilin Zhao / Yik Huang",
+              milestone: "M0",
+              deps: "OKR 追踪表、内部员工资料库",
+              tags: ["DRI", "蓝图"]
+            }
+          ],
+          now: [
+            {
+              title: "定义“能用 / 好用”验收标准",
+              outcome: "把 WebApp、iOS App、管理后台、借贷原型、资产卡和鉴定入口拆成可用性、好用性、稳定性、数据完整度和早期用户反馈标准。",
+              owner: "Ruilin Zhao",
+              milestone: "M1",
+              deps: "早期用户、设计、工程、AI、鉴定",
+              tags: ["可用性", "好用性", "验收"]
+            },
+            {
+              title: "稳定线上产品与对外演示版本",
+              outcome: "整理一条不会被边界状态打断的 demo path，同时明确哪些功能已经真实可用，哪些仍是系统原型或模拟数据。",
+              owner: "Ruilin Zhao / Jason Li",
+              milestone: "M1",
+              deps: "UX/UI、数据、借贷页",
+              tags: ["线上产品", "Demo", "Mock", "外部展示"]
+            },
+            {
+              title: "建立早期用户反馈闭环",
+              outcome: "把早期用户的使用问题、功能需求、识别错误、资产卡缺项和体验卡点沉淀成每周产品修正清单。",
+              owner: "Ruilin Zhao / Jason Li",
+              milestone: "M1",
+              deps: "用户使用、客服、增长运营",
+              tags: ["早期用户", "反馈", "体验"]
+            },
+            {
+              title: "把线条看板固化为周度管理工具",
+              outcome: "所有执行模块按已完成、进行中、下一步、未来规划更新，形成每周可复盘、可追踪、可交接的管理节奏。",
+              owner: "产品开发总控",
+              milestone: "M1",
+              deps: "各线条 DRI",
+              tags: ["任务系统", "周会"]
+            }
+          ],
+          next: [
+            {
+              title: "拆分子模块 DRI 与后备负责人",
+              outcome: "金融、护照、市场、托管、合规、资安等待指派模块形成明确 owner roster。",
+              owner: "Yik Huang / Ruilin Zhao",
+              milestone: "M2-M4",
+              deps: "管理层决策、外部合作方",
+              tags: ["DRI", "治理"]
+            },
+            {
+              title: "建立功能上线闸口模板",
+              outcome: "每个新功能上线前统一检查产品、数据、鉴定、风控、合规、资安和运营准备度。",
+              owner: "产品委员会",
+              milestone: "M2",
+              deps: "合规安全、工程平台",
+              tags: ["上线闸口", "验收"]
+            }
+          ],
+          future: [
+            {
+              title: "建设跨线条项目办公室机制",
+              outcome: "把研发、鉴定、金融、法务、运营和增长变成可持续的项目组合管理机制。",
+              owner: "待确认",
+              milestone: "M5",
+              deps: "治理委员会、任务数据",
+              tags: ["PMO", "规模化"]
+            }
+          ]
+        }
+      },
+      {
+        id: "product-ux",
+        group: "产品开发线",
+        name: "产品与体验部",
+        english: "Product & UX",
+        accent: "var(--cyan)",
+        lead: "Ruilin Zhao / Jason Li / Zhou Junfei",
+        people: ["Ruilin Zhao", "Jason Li", "Zhou Junfei", "Zhenxin Huang"],
+        charter: "负责用户旅程、信息架构、资产卡、操作入口、图表、多语言和演示体验。",
+        tasks: {
+          done: [
+            {
+              title: "资产卡与主要用户流程已上线可用",
+              outcome: "用户已经可以从识别进入对话、资产卡、资产管理和后续动作入口；当前重点转为让真实用户更容易理解和持续使用。",
+              owner: "Jason Li / Zhenxin Huang / Zhou Junfei",
+              milestone: "M0",
+              deps: "工程平台、AI 识别",
+              tags: ["资产卡", "UX", "上线"]
+            }
+          ],
+          now: [
+            {
+              title: "多端体验一致性与好用性修整",
+              outcome: "统一 iOS、WebApp、管理后台在资产卡、状态胶囊、弹窗层级、图表和空状态上的交互口径，并定义哪些细节达到“好用”。",
+              owner: "Ruilin Zhao / Zhou Junfei",
+              milestone: "M1",
+              deps: "前端、设计系统",
+              tags: ["WebApp", "iOS", "好用性", "UI"]
+            },
+            {
+              title: "真实用户使用问题收敛",
+              outcome: "把早期用户反馈转成可复现问题、可验收改动和优先级，优先处理注册、识别、资产卡、图表、状态提示与关键跳转。",
+              owner: "Ruilin Zhao / Jason Li / Zhou Junfei",
+              milestone: "M1",
+              deps: "早期用户、增长运营、工程平台",
+              tags: ["用户反馈", "可用性", "体验"]
+            },
+            {
+              title: "金融入口的展示边界设计",
+              outcome: "借贷页和黑卡相关能力在正式授信前明确标记为系统原型 / 模拟数据。",
+              owner: "Ruilin Zhao",
+              milestone: "M1-M4",
+              deps: "金融风控、法务合规",
+              tags: ["借贷", "Mock", "合规提示"]
+            }
+          ],
+          next: [
+            {
+              title: "补齐用户研究和 demo 验收清单",
+              outcome: "形成早期 VIP、合作方、资金方观看产品时的演示脚本和问题收集模板。",
+              owner: "产品与体验部",
+              milestone: "M1",
+              deps: "增长、金融、市场",
+              tags: ["用户研究", "Demo"]
+            },
+            {
+              title: "设计护照、鉴定、市场、托管入口原型",
+              outcome: "让用户从资产卡自然进入鉴定、护照、放盘、托管和借贷，但不提前承诺未上线能力。",
+              owner: "产品与体验部",
+              milestone: "M3-M5",
+              deps: "鉴定、区块链、市场、托管",
+              tags: ["护照", "放盘", "托管"]
+            }
+          ],
+          future: [
+            {
+              title: "建立完整设计系统与组件规范",
+              outcome: "支持 App、WebApp、管理后台、合作方门户和未来节点后台复用。",
+              owner: "待确认",
+              milestone: "M5",
+              deps: "前端、品牌",
+              tags: ["Design System"]
+            }
+          ]
+        }
+      },
+      {
+        id: "engineering-platform",
+        group: "产品开发线",
+        name: "工程平台部",
+        english: "Engineering & Platform",
+        accent: "var(--gold)",
+        lead: "Ruilin Zhao / Zhenxin Huang",
+        people: ["Ruilin Zhao", "Zhenxin Huang", "Guo Jintao", "Long Jikang", "Zhou Junfei"],
+        charter: "负责 App、WebApp、API、数据库、管理后台、权限、日志、测试、发布和稳定性。",
+        tasks: {
+          done: [
+            {
+              title: "WebApp / iOS / 资产管理主链路已上线",
+              outcome: "WebApp、iOS App、资产管理界面、后端和数据库已形成可用能力，支持非官方资产、识别结果、资产卡与鉴定记录。",
+              owner: "Zhenxin Huang / Long Jikang",
+              milestone: "M0",
+              deps: "产品入口、资产数据",
+              tags: ["上线", "WebApp", "iOS", "后端", "数据库"]
+            },
+            {
+              title: "前后端主链路基本跑通",
+              outcome: "识别、对话、资产卡、资产管理、鉴定联动已能进入演示流程。",
+              owner: "工程平台部",
+              milestone: "M0",
+              deps: "AI、产品体验",
+              tags: ["API", "WebApp"]
+            }
+          ],
+          now: [
+            {
+              title: "持续补全数据库与资产资料质量",
+              outcome: "数据库不是上线阻塞项，而是持续迭代项；继续补手表、红酒、成交数据、字段单位、图片、品牌型号和老款资料。",
+              owner: "Ruilin Zhao / Long Jikang",
+              milestone: "M2",
+              deps: "AI 数据部、资产研究",
+              tags: ["数据库", "数据补全", "质量"]
+            },
+            {
+              title: "统一资产状态与鉴定状态模型",
+              outcome: "让前端、后端、管理后台对资产、鉴定、二次鉴定、交易前认证的状态理解一致。",
+              owner: "Ruilin Zhao / Zhenxin Huang",
+              milestone: "M1-M3",
+              deps: "鉴定与标准部",
+              tags: ["状态机", "鉴定"]
+            },
+            {
+              title: "补齐 Web / iOS 数据同步和边界状态",
+              outcome: "减少线上多端展示不一致，修正移动端弹窗、hover、空状态、数据刷新、错误提示和早期用户遇到的关键问题。",
+              owner: "Jason Li / Zhou Junfei / Zhenxin Huang",
+              milestone: "M1",
+              deps: "产品体验",
+              tags: ["iOS", "Web", "同步"]
+            },
+            {
+              title: "管理后台操作日志语义沉淀",
+              outcome: "把创建、修改、删除、审批、复核、状态回写等动作设计成后续审计可用的日志模型。",
+              owner: "工程平台部",
+              milestone: "M2-M4",
+              deps: "法务合规、资安治理",
+              tags: ["审计日志", "后台"]
+            }
+          ],
+          next: [
+            {
+              title: "建立 RBAC 与审批权限模型",
+              outcome: "高价值资产、鉴定、借贷、托管、合约和合作方 API 都要有可追踪权限。",
+              owner: "待指派",
+              milestone: "M2-M4",
+              deps: "合规安全、资安",
+              tags: ["RBAC", "审批"]
+            },
+            {
+              title: "自动化测试和发布管理",
+              outcome: "对演示路径、资产卡、鉴定联动、借贷原型、数据同步建立最低回归测试。",
+              owner: "工程平台部",
+              milestone: "M2",
+              deps: "产品开发总控",
+              tags: ["测试", "发布"]
+            }
+          ],
+          future: [
+            {
+              title: "合作方 API 与节点门户",
+              outcome: "为鉴定方、托管库、资金方、护照节点提供受控 API 和后台。",
+              owner: "待指派",
+              milestone: "M5",
+              deps: "区块链护照、合规安全",
+              tags: ["API", "节点门户"]
+            }
+          ]
+        }
+      },
+      {
+        id: "ai-data",
+        group: "产品开发线",
+        name: "AI 与数据部",
+        english: "AI & Data",
+        accent: "var(--violet)",
+        lead: "Zhenxin Huang / Guo Jintao / Long Jikang",
+        people: ["Zhenxin Huang", "Guo Jintao", "Long Jikang", "Ruilin Zhao", "Clifton Yang"],
+        charter: "负责 AI 识别、专家模型、RAG、资产数据、成交数据、估值输入和数据质量治理。",
+        tasks: {
+          done: [
+            {
+              title: "手表识别与资产问答基础可用",
+              outcome: "手表图像识别和简单专家模型已经能为资产卡提供基础建议。",
+              owner: "Zhenxin Huang / Guo Jintao",
+              milestone: "M0",
+              deps: "产品入口、资产卡",
+              tags: ["AI", "识别"]
+            },
+            {
+              title: "手表与红酒数据建库启动",
+              outcome: "手表、红酒参数和成交价资料已进入内部数据工作流。",
+              owner: "Ruilin Zhao / Long Jikang / Clifton Yang",
+              milestone: "M2",
+              deps: "外部数据源、业务研究",
+              tags: ["数据", "成交价"]
+            }
+          ],
+          now: [
+            {
+              title: "成交数据爬取、去重与质量清洗",
+              outcome: "处理重复 reference、老款缺失、字段单位不一致、材质 / 形状 / 防水等字段标准化。",
+              owner: "Ruilin Zhao / Long Jikang",
+              milestone: "M2",
+              deps: "工程平台、资产专家",
+              tags: ["Data QA", "估值"]
+            },
+            {
+              title: "提升 AI 输出可信度和引用机制",
+              outcome: "把模型回答从泛泛建议升级成有来源、有置信度、有人工复核入口的资产解释。",
+              owner: "Zhenxin Huang / Guo Jintao",
+              milestone: "M1-M2",
+              deps: "数据底座、资产专家",
+              tags: ["RAG", "引用"]
+            },
+            {
+              title: "连接 AI 输出与鉴定、估值记录",
+              outcome: "让 AI 识别、专家建议、估值和鉴定状态能沉淀回资产历史。",
+              owner: "AI 与数据部",
+              milestone: "M2-M3",
+              deps: "工程平台、鉴定标准",
+              tags: ["资产历史", "AI 记录"]
+            }
+          ],
+          next: [
+            {
+              title: "定义估值输入与流动性指标",
+              outcome: "明确成交量、成交额、成交深度、买卖价差、换手率和清算折价如何进入估值。",
+              owner: "Ruilin Zhao / 数据团队",
+              milestone: "M2-M4",
+              deps: "金融风控",
+              tags: ["估值", "流动性"]
+            },
+            {
+              title: "建立多品类知识库扩展路径",
+              outcome: "从手表和红酒扩展到珠宝、包袋、艺术品等高价值资产。",
+              owner: "AI 与数据部 / 资产专家",
+              milestone: "M5",
+              deps: "外部专家、数据源",
+              tags: ["多品类", "知识库"]
+            }
+          ],
+          future: [
+            {
+              title: "资产管家智能代理网络",
+              outcome: "用用户代理、估值代理、鉴定代理、市场代理、借贷代理和托管库代理协同执行任务。",
+              owner: "待指派",
+              milestone: "M5",
+              deps: "工作流引擎、合规安全",
+              tags: ["Agent", "Workflow"]
+            }
+          ]
+        }
+      },
+      {
+        id: "authentication-standard",
+        group: "标准与信任线",
+        name: "鉴定与标准部",
+        english: "Authentication & Standards",
+        accent: "var(--gold)",
+        lead: "Jason Li / Zhenxin Huang；线下 DRI 待指派",
+        people: ["Jason Li", "Zhenxin Huang", "Yik Huang", "Clifton Yang", "待指派"],
+        charter: "负责线上鉴定、线下鉴定合作、Origin 硬件、RRS、证据包、专家复核和交易前认证标准。",
+        tasks: {
+          done: [
+            {
+              title: "LegitApp 线上鉴定与资产管理联动",
+              outcome: "鉴定提交、鉴定状态回写、鉴定详情、资产卡状态胶囊和二次鉴定入口已完成一轮联动。",
+              owner: "Jason Li / Zhenxin Huang",
+              milestone: "M3",
+              deps: "工程平台、产品体验",
+              tags: ["LegitApp", "鉴定"]
+            },
+            {
+              title: "香港手表鉴定机构进入任务池",
+              outcome: "亨德利被标记为线下鉴定目标合作方，进入后续接洽和 SOP 定义范围。",
+              owner: "Yik Huang",
+              milestone: "M3",
+              deps: "商务合作",
+              tags: ["亨德利", "线下"]
+            }
+          ],
+          now: [
+            {
+              title: "定义线下鉴定 SOP 与证据包",
+              outcome: "明确提交材料、拍摄标准、专家复核、真伪结论、品相描述、异常处理和状态回写。",
+              owner: "线下鉴定 DRI 待指派",
+              milestone: "M3",
+              deps: "工程平台、资产专家、合规",
+              tags: ["SOP", "证据包"]
+            },
+            {
+              title: "划清 LegitApp 与自建标准边界",
+              outcome: "明确哪些结论依赖第三方，哪些字段沉淀为 RIVEX 自有标准和未来 RRS 输入。",
+              owner: "Jason Li / Zhenxin Huang",
+              milestone: "M3-M4",
+              deps: "区块链护照、金融风控",
+              tags: ["RRS", "第三方边界"]
+            },
+            {
+              title: "建立人工复核与异常升级队列",
+              outcome: "AI 或第三方鉴定低置信度时，进入资产专家和线下合作方复核流程。",
+              owner: "鉴定与标准部",
+              milestone: "M3",
+              deps: "AI 数据、资产专家",
+              tags: ["人工复核", "风险"]
+            }
+          ],
+          next: [
+            {
+              title: "启动 Origin 确权硬件与实验室规划",
+              outcome: "定义设备规格、采集标准、校准规则、样本库、假货库和标准品相案例库。",
+              owner: "硬件 / 实验室 DRI 待指派",
+              milestone: "M3-M5",
+              deps: "预算、合作方、工程平台",
+              tags: ["Origin", "实验室"]
+            },
+            {
+              title: "建立 RIVEX Rating System 初版",
+              outcome: "把真伪、品相、完整性、材质、功能、配件、维修历史等字段转成可评分口径。",
+              owner: "鉴定与标准部 / 风控",
+              milestone: "M4",
+              deps: "AI 数据、金融风控",
+              tags: ["RRS", "评分"]
+            }
+          ],
+          future: [
+            {
+              title: "授权鉴定节点培训与审计",
+              outcome: "让外部鉴定方可以按 RIVEX 标准生成证据包，并接受节点审计和质量回测。",
+              owner: "待指派",
+              milestone: "M5",
+              deps: "合作方网络、区块链护照",
+              tags: ["节点", "审计"]
+            }
+          ]
+        }
+      },
+      {
+        id: "blockchain-passport",
+        group: "标准与信任线",
+        name: "区块链协议与护照架构部",
+        english: "Blockchain Protocol & Passport Architecture",
+        accent: "var(--blue)",
+        lead: "DRI 待指派；CSO / Partner Target 为资产标准、协议、交易分润与金融化建议承接方向",
+        people: ["CSO / Partner Target", "Ruilin Zhao", "Zhenxin Huang", "待指派"],
+        charter: "负责数字孪生护照、链上 / 链下边界、系统化协议、交易与分润账本、智能合约分润、节点收益账本、隐私权限和协议治理。",
+        tasks: {
+          done: [
+            {
+              title: "护照、追加记录和节点分成写入蓝图",
+              outcome: "白皮书已经定义数字孪生护照、交易前追加认证、护照重铸和节点分成逻辑。",
+              owner: "蓝图团队",
+              milestone: "M5",
+              deps: "白皮书架构",
+              tags: ["护照", "协议"]
+            }
+          ],
+          now: [
+            {
+              title: "定义手表资产 metadata 与证据包映射",
+              outcome: "把型号、序列号、品相、来源、鉴定证据、图像 / 3D 哈希和所有权记录转成护照字段。",
+              owner: "区块链协议 DRI 待指派",
+              milestone: "M3-M5",
+              deps: "鉴定与标准部、AI 数据",
+              tags: ["metadata", "手表"]
+            },
+            {
+              title: "设计链上 / 链下资料边界",
+              outcome: "确定哪些信息上链、哪些只存哈希和时间戳、哪些因隐私和商业敏感留在链下。",
+              owner: "区块链协议部 / 法务合规",
+              milestone: "M5",
+              deps: "合规安全、工程平台",
+              tags: ["隐私", "链上边界"]
+            },
+            {
+              title: "建立智能合约分润账本框架",
+              outcome: "明确平台、鉴定方、护照节点、托管库、资金方和合作方的费用分配与追踪逻辑。",
+              owner: "CSO / Partner Target（待确认）/ DRI 待指派",
+              milestone: "M5",
+              deps: "金融风控、合作方网络、角色确认问卷",
+              tags: ["分润", "节点收益"],
+              purpose: true
+            }
+          ],
+          next: [
+            {
+              title: "确认资产标准、护照协议与交易分润协作边界",
+              outcome: "明确 CSO / Partner Target 在资产标准化、Origin / Passport、系统化工作流、链上交易分润、结构化信用和机构材料中的参与边界。",
+              owner: "CSO / Partner Target（待确认）",
+              milestone: "M4-M5",
+              deps: "角色确认问卷、下一次对齐讨论",
+              tags: ["Purpose", "Target"],
+              purpose: true
+            },
+            {
+              title: "形成护照协议 PRD 与技术设计",
+              outcome: "输出护照铸造、追加、作废、重铸、查验 API、节点权限和审计日志的技术方案。",
+              owner: "区块链协议 DRI 待指派",
+              milestone: "M5",
+              deps: "工程平台、资安",
+              tags: ["PRD", "技术设计"]
+            },
+            {
+              title: "把链上透明度与分润账本转成机构材料",
+              outcome: "让资金方、第三方财务公司和合作节点理解资产可信资料、交易记录、监控、清算、分润和系统化协议机制。",
+              owner: "CSO / Partner Target（待确认）/ Yik Huang",
+              milestone: "M4-M5",
+              deps: "金融风控、鉴定标准、角色确认问卷",
+              tags: ["融资材料", "机构"],
+              purpose: true
+            }
+          ],
+          future: [
+            {
+              title: "评估 RWA / ABS / 资产代币化路径",
+              outcome: "在法律、风控、资产池和投资人报告成熟后，再评估资产证券化或 RWA 路线。",
+              owner: "CSO / Partner Target（待确认）/ 法务合规",
+              milestone: "M5+",
+              deps: "合规、资产池、资金方、角色确认问卷",
+              tags: ["RWA", "ABS"],
+              purpose: true
+            }
+          ]
+        }
+      },
+      {
+        id: "finance-risk",
+        group: "金融与商业化线",
+        name: "金融风控与资金部",
+        english: "Finance, Risk & Capital",
+        accent: "var(--green)",
+        lead: "Ruilin Zhao；CSO / Partner Target 为金融化、结构化信用与机构资源建议承接方向",
+        people: ["Ruilin Zhao", "Yik Huang", "CSO / Partner Target", "Neo Huang", "待指派"],
+        charter: "负责 LTV、授信、清算、金融化路径、资产池、资金方、第三方财务公司过渡和机构融资叙事。",
+        tasks: {
+          done: [
+            {
+              title: "资金方与借贷管理系统方向启动",
+              outcome: "借贷系统进入建设方向，借贷页可作为产品展示入口。",
+              owner: "Ruilin Zhao / Yik Huang",
+              milestone: "M4",
+              deps: "产品入口、工程平台",
+              tags: ["借贷", "资金方"]
+            }
+          ],
+          now: [
+            {
+              title: "定义借贷风控和 LTV 输入",
+              outcome: "明确估值、RRS、鉴定状态、托管状态、保险、成交深度和清算折价如何影响授信。",
+              owner: "Ruilin Zhao",
+              milestone: "M4",
+              deps: "鉴定标准、AI 数据、托管运营",
+              tags: ["LTV", "RRS", "风控"]
+            },
+            {
+              title: "正式授信与模拟展示隔离",
+              outcome: "在合规、资金和风控未完成前，借贷与黑卡展示必须保持原型 / 模拟数据口径。",
+              owner: "Ruilin Zhao / 法务合规 DRI",
+              milestone: "M1-M4",
+              deps: "产品体验、合规",
+              tags: ["Mock", "合规提示"]
+            }
+          ],
+          next: [
+            {
+              title: "确认金融化 KPI 与第三方财务公司过渡边界",
+              outcome: "明确 CSO / Partner Target 在金融化 KPI、机构沟通节奏、第三方财务公司过渡、结构化信用、资产池和链上分润材料中的参与边界。",
+              owner: "CSO / Partner Target（待确认）",
+              milestone: "M4",
+              deps: "角色确认问卷、下一次对齐讨论",
+              tags: ["Purpose", "金融化 KPI", "第三方财务公司"],
+              purpose: true
+            },
+            {
+              title: "建立机构沟通节奏与金融化 KPI",
+              outcome: "形成机构沟通节奏、目标名单、材料口径、阶段性金融化指标和资产池假设；正式 owner 需在角色确认后落定。",
+              owner: "CSO / Partner Target（待确认）/ Yik Huang",
+              milestone: "M4",
+              deps: "链上护照材料、产品 demo、角色确认问卷",
+              tags: ["机构沟通", "融资"],
+              purpose: true
+            },
+            {
+              title: "定义抵押品准入与清算规则",
+              outcome: "形成哪些资产可进入借贷、如何估值、如何触发补充保证金、如何拍卖清算的初版规则。",
+              owner: "金融风控部",
+              milestone: "M4",
+              deps: "鉴定、托管、法务",
+              tags: ["清算", "授信"]
+            },
+            {
+              title: "第三方财务公司候选清单与条款假设",
+              outcome: "早期用外部合规和放款承接方试点，RIVEX 沉淀风控、报告和系统能力。",
+              owner: "CSO / Partner Target（待确认）/ Yik Huang",
+              milestone: "M4",
+              deps: "法务合规、资金方、角色确认问卷",
+              tags: ["第三方财务公司", "Term Sheet"],
+              purpose: true
+            }
+          ],
+          future: [
+            {
+              title: "RIVEX 自有金融架构",
+              outcome: "把第三方过渡方案沉淀成自有授信、风控、资产池、投后监控和治理能力。",
+              owner: "CSO / Partner Target（待确认）/ 金融 DRI 待指派",
+              milestone: "M5+",
+              deps: "合规、资产池、护照协议、角色确认问卷",
+              tags: ["自有金融", "资产池"],
+              purpose: true
+            }
+          ]
+        }
+      },
+      {
+        id: "market-partnership",
+        group: "金融与商业化线",
+        name: "市场交易与合作网络部",
+        english: "Market, Trading & Partnerships",
+        accent: "var(--orange)",
+        lead: "DRI 待指派；Yik / Neo / Jason 支援",
+        people: ["Yik Huang", "Neo Huang", "Jason Li", "Clifton Yang", "待指派"],
+        charter: "负责放盘、需求池、交易前认证、以物易物、拍卖行、鉴定方、资金方、节点和合作方拓展。",
+        tasks: {
+          done: [
+            {
+              title: "需求池和放盘能力在蓝图中定义",
+              outcome: "追踪清单、买方需求池、验证放盘、权限可见性和市场代理已经进入产品蓝图。",
+              owner: "蓝图团队",
+              milestone: "M5",
+              deps: "白皮书架构",
+              tags: ["市场", "放盘"]
+            },
+            {
+              title: "合作方类别初步明确",
+              outcome: "鉴定、资金、交易、托管、保险、护照节点等合作方类别已经被拆出。",
+              owner: "Yik Huang / 产品开发总控",
+              milestone: "M3-M5",
+              deps: "任务系统",
+              tags: ["合作方", "节点"]
+            }
+          ],
+          now: [
+            {
+              title: "分清五类核心合作方管道",
+              outcome: "分别维护鉴定、资金、交易、托管、保险合作方状态，避免所有商务机会混在一起。",
+              owner: "市场交易 DRI 待指派",
+              milestone: "M3-M5",
+              deps: "Yik Huang、Neo Huang、Jason Li",
+              tags: ["Pipeline", "合作方"]
+            },
+            {
+              title: "把产品 demo 转成合作方沟通材料",
+              outcome: "为鉴定机构、资金方、拍卖行、托管库准备不同版本的产品演示和合作说明。",
+              owner: "Jason Li / Neo Huang",
+              milestone: "M1-M4",
+              deps: "产品体验、增长运营",
+              tags: ["Demo", "商务材料"]
+            }
+          ],
+          next: [
+            {
+              title: "定义交易前认证与放盘准入规则",
+              outcome: "明确资产放盘前需要的鉴定、护照、KYC、可见性权限和交易前复核要求。",
+              owner: "市场交易部 / 鉴定标准部",
+              milestone: "M5",
+              deps: "鉴定、合规、护照协议",
+              tags: ["交易前认证", "准入"]
+            },
+            {
+              title: "市场原型：追踪、提醒、可见性和需求池",
+              outcome: "先做低风险市场原型，不提前承诺正式撮合、资金托管或交易闭环。",
+              owner: "市场交易 DRI 待指派",
+              milestone: "M5",
+              deps: "产品体验、工程平台",
+              tags: ["原型", "需求池"]
+            }
+          ],
+          future: [
+            {
+              title: "交易、所有权变更与以物易物闭环",
+              outcome: "在护照、托管、KYC、资金托管和争议处理成熟后，开放真实市场交易能力。",
+              owner: "待指派",
+              milestone: "M5+",
+              deps: "护照协议、法务、托管",
+              tags: ["交易", "以物易物"]
+            }
+          ]
+        }
+      },
+      {
+        id: "vault-ops",
+        group: "金融与商业化线",
+        name: "托管运营与保险部",
+        english: "Vault, Insurance & Offline Operations",
+        accent: "var(--violet)",
+        lead: "DRI 待指派",
+        people: ["待指派", "Yik Huang", "法务合规 DRI", "金融风控部"],
+        charter: "负责实物入库、出库、锁定、保险、盘点、物流、事故处理、VIP 服务和金融状态同步。",
+        tasks: {
+          done: [
+            {
+              title: "托管、保险、线下节点纳入蓝图",
+              outcome: "白皮书已经把托管库、保险、物理锁定和线下运营作为金融化前置能力。",
+              owner: "蓝图团队",
+              milestone: "M5",
+              deps: "白皮书架构",
+              tags: ["托管", "保险"]
+            }
+          ],
+          now: [
+            {
+              title: "等待线下鉴定与金融产品路径明确",
+              outcome: "托管运营不能脱离鉴定、借贷、保险和法务文件单独启动，需要先等前置标准清楚。",
+              owner: "托管运营 DRI 待指派",
+              milestone: "M3-M4",
+              deps: "鉴定标准、金融风控、法务",
+              tags: ["前置依赖", "线下"]
+            }
+          ],
+          next: [
+            {
+              title: "定义入库、保险、锁定、盘点 SOP",
+              outcome: "明确资产接收、拍照、封存、保险、权限、盘点、异常和出库流程。",
+              owner: "托管运营 DRI 待指派",
+              milestone: "M5",
+              deps: "法务合规、鉴定标准",
+              tags: ["SOP", "盘点"]
+            },
+            {
+              title: "评估自营与合作托管库路线",
+              outcome: "比较成本、责任、保险、城市覆盖、VIP 交付和金融合作可行性。",
+              owner: "Yik Huang / 托管 DRI 待指派",
+              milestone: "M5",
+              deps: "合作方网络、保险方案",
+              tags: ["托管库", "合作"]
+            }
+          ],
+          future: [
+            {
+              title: "托管库系统与 IoT 监控",
+              outcome: "建立托管库后台、资产锁定 / 解锁、保险同步、异常告警和审计记录。",
+              owner: "待指派",
+              milestone: "M5+",
+              deps: "工程平台、资安",
+              tags: ["IoT", "后台"]
+            }
+          ]
+        }
+      },
+      {
+        id: "legal-security",
+        group: "治理支撑线",
+        name: "法务合规与资安治理部",
+        english: "Legal, Compliance, Security & Governance",
+        accent: "var(--rose)",
+        lead: "DRI 待指派",
+        people: ["待指派", "Ruilin Zhao", "Yik Huang", "CSO / Partner Target"],
+        charter: "负责 KYC / AML、合同、监管、用户披露、权限、审计日志、密钥、备份、资安审查和治理委员会。",
+        tasks: {
+          done: [
+            {
+              title: "治理委员会建议写入蓝图",
+              outcome: "产品委员会、风险委员会、协议委员会、鉴定委员会、运营委员会和合规审查关卡已被定义。",
+              owner: "蓝图团队",
+              milestone: "M1-M5",
+              deps: "管理层决策",
+              tags: ["治理", "委员会"]
+            }
+          ],
+          now: [
+            {
+              title: "标记高风险功能的合规前置条件",
+              outcome: "借贷、交易、黑卡、托管、护照节点、跨境、数据使用都需要上线路径前的合规审查。",
+              owner: "法务合规 DRI 待指派",
+              milestone: "M4-M5",
+              deps: "金融风控、市场交易、托管运营",
+              tags: ["合规闸口", "KYC"]
+            },
+            {
+              title: "定义审计日志、权限和数据治理最低要求",
+              outcome: "先列出 RBAC、操作日志、备份、密钥、合作方 API 和数据来源标注的最低产品要求。",
+              owner: "资安 / DevOps DRI 待指派",
+              milestone: "M2-M5",
+              deps: "工程平台",
+              tags: ["资安", "审计"]
+            }
+          ],
+          next: [
+            {
+              title: "外部律所与合规顾问接入方式",
+              outcome: "决定金融、借贷、托管、鉴定合作、数据使用和跨境交易分别由谁审查。",
+              owner: "Yik Huang / 法务 DRI 待指派",
+              milestone: "M4",
+              deps: "资金方、第三方财务公司",
+              tags: ["律所", "顾问"]
+            },
+            {
+              title: "建立资安审查和事故响应流程",
+              outcome: "合约、核心 API、密钥、节点后台和高权限后台上线前必须有安全检查。",
+              owner: "资安 DRI 待指派",
+              milestone: "M5",
+              deps: "工程平台、区块链协议",
+              tags: ["DevOps", "Incident"]
+            }
+          ],
+          future: [
+            {
+              title: "合约模板和用户披露体系",
+              outcome: "托管、借贷、交易、节点、API、保险、第三方财务公司合作形成可版本化模板。",
+              owner: "待指派",
+              milestone: "M5+",
+              deps: "外部律所、产品上线计划",
+              tags: ["合同", "披露"]
+            }
+          ]
+        }
+      },
+      {
+        id: "growth-aigc",
+        group: "金融与商业化线",
+        name: "增长运营与 AIGC 内容部",
+        english: "Growth, AIGC & Communications",
+        accent: "var(--green)",
+        lead: "Jason Li / Neo Huang",
+        people: ["Jason Li", "Neo Huang", "Yik Huang", "产品开发总控"],
+        charter: "负责社交媒体、AIGC 内容、产品故事、资金方材料、合作方沟通材料、VIP 触达和外部影响力建设。",
+        tasks: {
+          done: [
+            {
+              title: "AIGC 内容与社媒推广进入执行",
+              outcome: "Jason 和 Neo 已在协助运营推广，用 AIGC 快速生成产品亮点、社媒内容和品牌叙事。",
+              owner: "Jason Li / Neo Huang",
+              milestone: "M1",
+              deps: "产品 demo、品牌素材",
+              tags: ["AIGC", "社媒"]
+            }
+          ],
+          now: [
+            {
+              title: "建立内容日历与审核节奏",
+              outcome: "围绕产品 demo、AI 识别、资产管理、鉴定、借贷金融化形成稳定内容节奏。",
+              owner: "Jason Li / Neo Huang",
+              milestone: "M1-M4",
+              deps: "产品、金融、合规",
+              tags: ["内容日历", "审核"]
+            },
+            {
+              title: "把复杂蓝图转成外部可理解故事",
+              outcome: "把鉴定、区块链护照、资产金融和第三方财务公司过渡转成合作方与资金方听得懂的材料。",
+              owner: "增长运营部 / 金融材料 DRI 待指派",
+              milestone: "M4-M5",
+              deps: "金融风控、区块链护照",
+              tags: ["融资材料", "故事线"]
+            }
+          ],
+          next: [
+            {
+              title: "资金方、合作方、VIP 沟通素材库",
+              outcome: "按资金方、鉴定机构、托管库、拍卖行、VIP 用户拆出不同版本的材料和演示脚本。",
+              owner: "Jason Li / Neo Huang / Yik Huang",
+              milestone: "M3-M5",
+              deps: "市场合作、产品 demo",
+              tags: ["素材库", "VIP"]
+            },
+            {
+              title: "内容合规边界模板",
+              outcome: "避免金融产品、收益、合作状态和正式授信能力在未成熟前被过度承诺。",
+              owner: "增长运营部 / 法务合规",
+              milestone: "M4",
+              deps: "法务合规",
+              tags: ["合规", "内容审查"]
+            }
+          ],
+          future: [
+            {
+              title: "合作方成功与节点培训内容",
+              outcome: "当护照节点、鉴定节点和托管合作方启动后，形成培训材料、FAQ 和运营手册。",
+              owner: "待指派",
+              milestone: "M5+",
+              deps: "合作方网络、区块链护照",
+              tags: ["培训", "节点"]
+            }
+          ]
+        }
+      }
+    ];
+
+    const metricGrid = document.getElementById("metricGrid");
+    const milestoneRail = document.getElementById("milestoneRail");
+    const departmentBoard = document.getElementById("departmentBoard");
+    const statusFilters = document.getElementById("statusFilters");
+    const departmentFilters = document.getElementById("departmentFilters");
+    const searchInput = document.getElementById("searchInput");
+    const boardStatus = document.getElementById("boardStatus");
+    const peopleGrid = document.getElementById("peopleGrid");
+    const hasJimAccess = window.RivexAuth?.hasJimAccess?.() || false;
+
+    let activeStatus = "all";
+    let activeDepartment = "all";
+
+    const normalize = (value) => String(value || "").toLowerCase().trim();
+    const isJimText = (value) => /jim|purpose to confirm|cso\s*\/\s*partner/i.test(String(value || ""));
+
+    if (hasJimAccess) {
+      searchInput.placeholder = "搜索：鉴定、区块链、LTV、PRD、托管、AIGC、Jim、亨德利...";
+    }
+
+    function isJimRelatedTask(task, department = task.department || {}) {
+      return Boolean(task.purpose) || isJimText([
+        task.title,
+        task.outcome,
+        task.owner,
+        task.deps,
+        task.milestone,
+        department.name,
+        department.lead,
+        department.people?.join(" "),
+        ...(task.tags || [])
+      ].join(" "));
+    }
+
+    function allTasks() {
+      return departments.flatMap((department) =>
+        Object.entries(department.tasks).flatMap(([status, tasks]) =>
+          tasks
+            .filter((task) => hasJimAccess || !isJimRelatedTask(task, department))
+            .map((task) => ({ ...task, status, department }))
+        )
+      );
+    }
+
+    function taskMatches(task, query) {
+      if (!query) return true;
+      const haystack = [
+        task.title,
+        task.outcome,
+        task.owner,
+        task.milestone,
+        task.deps,
+        task.department.name,
+        task.department.english,
+        task.department.group,
+        ...(task.tags || [])
+      ].join(" ");
+      return normalize(haystack).includes(query);
+    }
+
+    function departmentMatches(department, query) {
+      if (!query) return true;
+      const haystack = [
+        department.name,
+        department.english,
+        department.group,
+        department.lead,
+        department.charter,
+        ...department.people
+      ].join(" ");
+      return normalize(haystack).includes(query);
+    }
+
+    function renderMetrics() {
+      const tasks = allTasks();
+      const counts = {
+        done: tasks.filter((task) => task.status === "done").length,
+        now: tasks.filter((task) => task.status === "now").length,
+        next: tasks.filter((task) => task.status === "next").length,
+        future: tasks.filter((task) => task.status === "future").length
+      };
+
+      metricGrid.innerHTML = [
+        {
+          value: lineGroups().length,
+          label: `条业务线，整合 ${departments.length} 个执行模块作为任务来源。`,
+          accent: "var(--cyan)"
+        },
+        {
+          value: counts.done,
+          label: "个已完成大项，主要集中在 WebApp / iOS 上线可用、资产管理、AI 识别和线上鉴定联动。",
+          accent: "var(--green)"
+        },
+        {
+          value: counts.now,
+          label: "个正在推进大项，覆盖能用 / 好用标准、早期用户反馈、数据补全、鉴定 SOP、LTV 和融资材料。",
+          accent: "var(--gold)"
+        },
+        {
+          value: counts.next + counts.future,
+          label: "个下一步 / 未来规划大项，主要依赖鉴定、合规、区块链护照和托管网络成熟。",
+          accent: "var(--violet)"
+        }
+      ].map((item) => `
+        <article class="metric-tile" style="--accent: ${item.accent}">
+          <strong>${item.value}</strong>
+          <span>${item.label}</span>
+        </article>
+      `).join("");
+    }
+
+    function renderMilestones() {
+      milestoneRail.innerHTML = milestones.map((milestone) => `
+        <article class="milestone-node" style="--accent: ${milestone.accent}">
+          <div>
+            <b>${milestone.id}</b>
+            <strong>${milestone.title}</strong>
+            <span>${milestone.status}</span>
+          </div>
+          <div>
+            <small>${milestone.detail}</small>
+            <div class="progress-track" aria-label="${milestone.title} progress">
+              <i style="--progress: ${milestone.progress}"></i>
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderFilters() {
+      statusFilters.innerHTML = [
+        { key: "all", label: "全部状态", tone: "var(--cyan)" },
+        ...Object.entries(statusMeta).map(([key, meta]) => ({ key, label: meta.label, tone: meta.tone }))
+      ].map((item) => `
+        <button class="filter-button ${activeStatus === item.key ? "active" : ""}" style="--accent: ${item.tone}" type="button" data-status="${item.key}">
+          ${item.label}
+        </button>
+      `).join("");
+
+      departmentFilters.innerHTML = [
+        { id: "all", name: "全部线条", accent: "var(--cyan)" },
+        ...lineGroups().map((line) => ({ id: `group:${line.name}`, name: line.name, accent: line.accent }))
+      ].map((item) => `
+        <button class="filter-button ${activeDepartment === item.id ? "active" : ""}" style="--accent: ${item.accent}" type="button" data-department="${item.id}">
+          ${item.name}
+        </button>
+      `).join("");
+
+      statusFilters.querySelectorAll("[data-status]").forEach((button) => {
+        button.addEventListener("click", () => {
+          activeStatus = button.dataset.status;
+          renderFilters();
+          renderBoard();
+        });
+      });
+
+      departmentFilters.querySelectorAll("[data-department]").forEach((button) => {
+        button.addEventListener("click", () => {
+          activeDepartment = button.dataset.department;
+          renderFilters();
+          renderBoard();
+        });
+      });
+    }
+
+    function renderTaskCard(task, status, department) {
+      const meta = statusMeta[status];
+      const jimPurpose = Boolean(task.purpose) || /Jim/.test(`${task.title} ${task.outcome} ${task.owner} ${department.lead}`);
+      return `
+        <details class="task-card ${jimPurpose ? "is-purpose" : ""}" style="--status: ${meta.tone}" data-task="${department.id} ${status}">
+          <summary class="task-summary">
+            <h4>${task.title}</h4>
+            <span class="task-status">${jimPurpose ? "待确认" : meta.label}</span>
+          </summary>
+          <div class="task-compact-meta">
+            <span><b>线条</b> ${department.group}</span>
+            <span><b>Milestone</b> ${task.milestone}</span>
+            ${jimPurpose ? `<span class="purpose-badge">Purpose to confirm</span>` : ""}
+          </div>
+          <div class="task-detail">
+            <p>${task.outcome}</p>
+            <div class="task-meta">
+              <span><b>Owner</b> ${task.owner}</span>
+              <span><b>来源</b> ${department.name}</span>
+              <span><b>依赖</b> ${task.deps}</span>
+            </div>
+            <div class="task-tags">${(task.tags || []).map((tag) => `<span class="tag-pill">${tag}</span>`).join("")}</div>
+          </div>
+        </details>
+      `;
+    }
+
+    function renderMatrixHeader() {
+      const lines = lineGroups();
+      return `
+        <div class="board-header-row" aria-label="任务线条矩阵表头">
+          <div class="board-header-cell" style="--accent: var(--cyan)">
+            <strong>所有线条</strong>
+            <span>Business Lines</span>
+          </div>
+          ${lines.map((line) => `
+            <div class="board-header-cell" style="--status: ${line.accent}">
+              <strong>${line.name}</strong>
+              <span>${line.summary}</span>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function lineGroups() {
+      return [
+        {
+          name: "产品开发线",
+          accent: "var(--cyan)",
+          summary: "产品开发总控、产品体验、工程平台、AI 与数据。",
+          departments: departments.filter((department) => department.group === "产品开发线")
+        },
+        {
+          name: "标准与信任线",
+          accent: "var(--gold)",
+          summary: "鉴定标准、Origin、RRS、区块链护照与合约分润。",
+          departments: departments.filter((department) => department.group === "标准与信任线")
+        },
+        {
+          name: "金融与商业化线",
+          accent: "var(--green)",
+          summary: "金融风控、市场合作、托管保险、增长内容与资金方材料。",
+          departments: departments.filter((department) => department.group === "金融与商业化线")
+        },
+        {
+          name: "治理支撑线",
+          accent: "var(--rose)",
+          summary: "法务合规、资安、审计、权限和跨线条治理机制。",
+          departments: departments.filter((department) => department.group === "治理支撑线")
+        }
+      ];
+    }
+
+    function matrixRows() {
+      return [
+        {
+          id: "now",
+          title: "正在进行中的任务",
+          subtitle: "当前正在推的工作，应该进入周会追踪。",
+          statuses: ["now"],
+          tone: "var(--cyan)"
+        },
+        {
+          id: "future",
+          title: "未来任务",
+          subtitle: "包含下一步任务和未来规划，等前置依赖成熟后推进。",
+          statuses: ["next", "future"],
+          tone: "var(--gold)"
+        },
+        {
+          id: "done",
+          title: "已完成沉淀",
+          subtitle: "已经跑通或已经写入蓝图的能力，作为后续任务的基础。",
+          statuses: ["done"],
+          tone: "var(--green)"
+        }
+      ];
+    }
+
+    function collectLineTasks(line, row, query) {
+      const lineTextMatch = query && normalize(`${line.name} ${line.summary}`).includes(query);
+
+      return line.departments.flatMap((department) => {
+        const departmentAllowed = activeDepartment === "all" || activeDepartment === `group:${department.group}` || activeDepartment === department.id;
+        if (!departmentAllowed) return [];
+
+        const departmentTextMatch = departmentMatches(department, query);
+
+        return row.statuses.flatMap((status) => {
+          if (activeStatus !== "all" && activeStatus !== status) return [];
+          return department.tasks[status]
+            .filter((task) => hasJimAccess || !isJimRelatedTask(task, department))
+            .filter((task) => !query || lineTextMatch || departmentTextMatch || taskMatches({ ...task, department }, query))
+            .map((task) => ({ ...task, status, department }));
+        });
+      });
+    }
+
+    function renderLineCell(line, row, query) {
+      const tasks = collectLineTasks(line, row, query);
+      const moduleCount = line.departments
+        .filter((department) => activeDepartment === "all" || activeDepartment === `group:${department.group}` || activeDepartment === department.id)
+        .length;
+
+      return `
+        <div class="line-cell" style="--line-tone: ${line.accent}">
+          <div class="line-cell-head">
+            <strong>${line.name}</strong>
+            <span>${tasks.length} 项</span>
+          </div>
+          <div class="task-stack">
+            <span class="line-department-list">整合 ${moduleCount} 个执行模块</span>
+            ${tasks.length ? tasks.map((task) => renderTaskCard(task, task.status, task.department)).join("") : `<div class="empty-state">当前筛选下没有任务卡</div>`}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBoard() {
+      const query = normalize(searchInput.value);
+      const lines = lineGroups();
+      const rows = matrixRows();
+      let visibleTasks = 0;
+
+      const rowMarkup = rows.map((row) => {
+        const rowTasks = lines.flatMap((line) => collectLineTasks(line, row, query));
+        visibleTasks += rowTasks.length;
+        return `
+          <section class="matrix-status-row" style="--row-tone: ${row.tone}">
+            <div class="status-row-head">
+              <strong>${row.title}</strong>
+              <span>${row.subtitle}</span>
+              <span>${rowTasks.length} 张任务卡</span>
+            </div>
+            ${lines.map((line) => renderLineCell(line, row, query)).join("")}
+          </section>
+        `;
+      }).join("");
+
+      if (!visibleTasks) {
+        departmentBoard.innerHTML = `<div class="empty-state">没有匹配的线条或任务。换一个关键词试试。</div>`;
+      } else {
+        departmentBoard.innerHTML = `<div class="department-matrix">${renderMatrixHeader()}${rowMarkup}</div>`;
+      }
+
+      boardStatus.textContent = `横向总控表：4 条线 / ${visibleTasks} 张任务卡`;
+    }
+
+    function renderPeople() {
+      const visiblePeople = hasJimAccess ? people : people.filter((person) => !person.jimOnly);
+      peopleGrid.innerHTML = visiblePeople.map((person) => `
+        <article class="person-card ${person.purpose ? "purpose-target" : ""} ${person.spotlight ? "is-founder" : ""} ${person.advisor ? "is-advisor" : ""}" style="--accent: ${person.accent}">
+          <strong>${person.name}</strong>
+          <em>${person.area}</em>
+          ${person.purpose ? `<span class="purpose-badge">Purpose to confirm</span>` : ""}
+          ${person.advisor ? `<span class="advisor-badge">Co-Advisor confirmed</span>` : ""}
+          <span>${person.role}</span>
+          <span>${person.modules}</span>
+          ${person.credential ? `<span class="credential-line"><b>学历 / 资历亮点</b>${person.credential}</span>` : ""}
+        </article>
+      `).join("");
+    }
+
+    searchInput.addEventListener("input", renderBoard);
+
+    renderMetrics();
+    renderMilestones();
+    renderFilters();
+    renderBoard();
+    renderPeople();
+
+    document.querySelectorAll("[data-logout]").forEach(button => {
+      button.addEventListener("click", () => {
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch (error) {
+          // Static preview can still return to the entry page if storage is unavailable.
+        }
+        window.location.href = "index.html?logout=1";
+      });
+    });
+  </script>
+</body>
+</html>

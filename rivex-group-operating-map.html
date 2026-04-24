@@ -1,0 +1,3377 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RIVEX Group 營運地圖 / Operating Map</title>
+  <script src="rivex-auth.js"></script>
+  <script>window.RivexAuth && RivexAuth.requireRole("any");</script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f6f3ea;
+      --muted: #aeb8c7;
+      --quiet: #737f90;
+      --night: #05070b;
+      --panel: rgba(16, 20, 28, 0.84);
+      --panel-soft: rgba(255, 255, 255, 0.045);
+      --line: rgba(255, 255, 255, 0.12);
+      --line-strong: rgba(255, 255, 255, 0.24);
+      --cyan: #36d6d8;
+      --gold: #e4b85c;
+      --violet: #8f7cff;
+      --green: #68d391;
+      --rose: #ff6b7a;
+      --orange: #ff9f43;
+      --blue: #4ea1ff;
+      --surface: #0d1118;
+      --surface-2: #131924;
+      --radius: 8px;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    img,
+    svg,
+    canvas {
+      max-width: 100%;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    p,
+    li,
+    span,
+    strong {
+      overflow-wrap: anywhere;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(5, 7, 11, 0.96), rgba(7, 9, 13, 0.98)),
+        linear-gradient(135deg, rgba(54, 214, 216, 0.08), transparent 28%, rgba(228, 184, 92, 0.07) 72%, transparent),
+        linear-gradient(90deg, rgba(143, 124, 255, 0.06), transparent 42%, rgba(104, 211, 145, 0.05)),
+        #05070b;
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+      background-size: 68px 68px;
+      mask-image: linear-gradient(to bottom, black, transparent 74%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      color: inherit;
+      font: inherit;
+    }
+
+    .page-shell {
+      width: min(1440px, calc(100% - clamp(24px, 4vw, 48px)));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid var(--line);
+      background: rgba(5, 7, 11, 0.86);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar-inner {
+      width: min(1440px, calc(100% - clamp(24px, 4vw, 48px)));
+      margin: 0 auto;
+      min-height: 72px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(228, 184, 92, 0.46);
+      background: linear-gradient(135deg, rgba(228, 184, 92, 0.24), rgba(54, 214, 216, 0.12));
+      font-weight: 900;
+      color: var(--gold);
+      border-radius: 8px;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.15;
+    }
+
+    .brand-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav a,
+    .compact-action,
+    .portal-action {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      padding: 9px 11px;
+      border-radius: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+    }
+
+    .nav a:hover,
+    .compact-action:hover,
+    .portal-action:hover {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--line);
+    }
+
+    .compact-action,
+    .portal-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: max-content;
+    }
+
+    .logout-action {
+      color: var(--gold);
+      border-color: rgba(228, 184, 92, 0.3);
+    }
+
+    .hero {
+      min-height: calc(100vh - 72px);
+      padding: 34px 0 48px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 24px;
+    }
+
+    .hero-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      gap: 24px;
+      align-items: end;
+    }
+
+    .eyebrow {
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin-bottom: 10px;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: 56px;
+      line-height: 1.03;
+      letter-spacing: 0;
+      margin-bottom: 18px;
+      max-width: 980px;
+    }
+
+    .lead {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 840px;
+      margin-bottom: 0;
+    }
+
+    .reader-path {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(164px, 1fr));
+      gap: 8px;
+      max-width: 980px;
+    }
+
+    .reader-step {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius);
+      padding: 12px;
+      min-height: 96px;
+      position: relative;
+    }
+
+    .reader-step::before {
+      content: "";
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: 0;
+      height: 2px;
+      background: var(--accent);
+    }
+
+    .reader-step strong {
+      display: block;
+      color: var(--accent);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .reader-step span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.045);
+      padding: 14px;
+      border-radius: var(--radius);
+      min-height: 88px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .operating-board {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 18px;
+      min-height: 560px;
+    }
+
+    .layer-console {
+      border: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.035));
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow);
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .console-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 2px 10px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 2px;
+    }
+
+    .console-title h2 {
+      font-size: 16px;
+      margin-bottom: 0;
+    }
+
+    .console-title span {
+      color: var(--quiet);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .layer-button {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--line);
+      background: rgba(5, 7, 11, 0.42);
+      border-radius: var(--radius);
+      padding: 14px;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      gap: 12px;
+      align-items: start;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .layer-button:hover,
+    .layer-button.active {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035));
+    }
+
+    .layer-number {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--accent);
+      font-weight: 900;
+    }
+
+    .layer-copy strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.35;
+      margin-bottom: 4px;
+    }
+
+    .layer-copy small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .layer-arrow {
+      color: var(--quiet);
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .stage {
+      border: 1px solid var(--line-strong);
+      background:
+        linear-gradient(180deg, rgba(13, 17, 24, 0.7), rgba(13, 17, 24, 0.92)),
+        linear-gradient(135deg, rgba(54, 214, 216, 0.08), rgba(228, 184, 92, 0.04));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-width: 0;
+    }
+
+    .stage-header {
+      border-bottom: 1px solid var(--line);
+      padding: 18px 20px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .stage-header h2 {
+      margin-bottom: 8px;
+      font-size: 28px;
+      line-height: 1.15;
+    }
+
+    .stage-header p {
+      color: var(--muted);
+      margin-bottom: 0;
+      max-width: 820px;
+    }
+
+    .stage-badge {
+      border: 1px solid var(--line);
+      color: var(--accent);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .stage-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 18px;
+      padding: 18px;
+    }
+
+    .stage-flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(156px, 1fr));
+      gap: 10px;
+    }
+
+    .flow-card {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius);
+      padding: 14px;
+      min-height: 144px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .flow-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent);
+      opacity: 0.9;
+    }
+
+    .flow-card .label {
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 900;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .flow-card h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .flow-card p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+      margin-bottom: 0;
+    }
+
+    .stage-side {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .signal-card {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 14px;
+      border-radius: var(--radius);
+    }
+
+    .signal-card h3 {
+      font-size: 14px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .signal-card ul,
+    .content-card ul,
+    .detail-panel ul {
+      padding-left: 18px;
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .signal-card li,
+    .content-card li,
+    .detail-panel li {
+      margin: 6px 0;
+    }
+
+    .layer-visual {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.035);
+      border-radius: var(--radius);
+      padding: 16px;
+      min-height: 210px;
+      display: grid;
+      place-items: center;
+    }
+
+    .visual-map {
+      width: 100%;
+      display: grid;
+      gap: 12px;
+    }
+
+    .visual-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .visual-row.four {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .visual-card,
+    .visual-node,
+    .visual-center {
+      border: 1px solid var(--line);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.028));
+      border-radius: var(--radius);
+      padding: 12px;
+      min-height: 92px;
+      display: grid;
+      align-content: center;
+      gap: 6px;
+    }
+
+    .visual-card strong,
+    .visual-node strong,
+    .visual-center strong {
+      color: var(--accent);
+      font-size: 13px;
+    }
+
+    .visual-card span,
+    .visual-node span,
+    .visual-center span {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .visual-center {
+      min-height: 112px;
+      text-align: center;
+      border-color: color-mix(in srgb, var(--accent) 46%, rgba(255, 255, 255, 0.12));
+      background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 14%, transparent), rgba(255, 255, 255, 0.03));
+    }
+
+    .visual-arrowline {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+      color: var(--accent);
+      font-weight: 900;
+    }
+
+    .visual-arrowline::before,
+    .visual-arrowline::after {
+      content: "";
+      height: 1px;
+      background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 58%, transparent), transparent);
+    }
+
+    .mini-phone {
+      width: 72px;
+      height: 126px;
+      border: 4px solid rgba(255, 255, 255, 0.24);
+      border-radius: 18px;
+      margin: 0 auto;
+      padding: 12px 8px;
+      display: grid;
+      gap: 7px;
+      background: rgba(0, 0, 0, 0.22);
+    }
+
+    .mini-phone i,
+    .visual-lines i {
+      display: block;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.18);
+      height: 7px;
+    }
+
+    .mini-phone i:nth-child(1),
+    .visual-lines i:nth-child(1) {
+      width: 58%;
+      background: color-mix(in srgb, var(--accent) 64%, rgba(255, 255, 255, 0.2));
+    }
+
+    .mini-phone i:nth-child(2) { width: 86%; }
+    .mini-phone i:nth-child(3) { width: 72%; }
+    .mini-phone i:nth-child(4) { width: 94%; }
+
+    .visual-lines {
+      display: grid;
+      gap: 8px;
+    }
+
+    .visual-lines i:nth-child(2) { width: 86%; }
+    .visual-lines i:nth-child(3) { width: 70%; }
+    .visual-lines i:nth-child(4) { width: 94%; }
+
+    .liquidity-bars {
+      display: grid;
+      gap: 8px;
+    }
+
+    .liquidity-bar {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr) 42px;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .liquidity-bar b {
+      height: 7px;
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--accent) 64%, rgba(255, 255, 255, 0.16));
+      width: var(--w);
+      display: block;
+    }
+
+    .mini-card {
+      border: 1px solid rgba(228, 184, 92, 0.46);
+      border-radius: 8px;
+      min-height: 96px;
+      padding: 12px;
+      background: linear-gradient(145deg, #111216, #030406);
+      color: var(--gold);
+      display: grid;
+      align-content: space-between;
+    }
+
+    .mini-card strong {
+      color: var(--gold);
+    }
+
+    .mini-card span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .twin-diagram {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 72px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .watch-asset,
+    .passport-mini {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+      min-height: 130px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .watch-face {
+      width: 86px;
+      height: 86px;
+      border-radius: 50%;
+      border: 6px solid rgba(228, 184, 92, 0.72);
+      background:
+        linear-gradient(90deg, transparent 49%, rgba(255, 255, 255, 0.18) 49%, rgba(255, 255, 255, 0.18) 51%, transparent 51%),
+        linear-gradient(0deg, transparent 49%, rgba(255, 255, 255, 0.18) 49%, rgba(255, 255, 255, 0.18) 51%, transparent 51%),
+        radial-gradient(circle, rgba(54, 214, 216, 0.22), rgba(5, 7, 11, 0.88) 64%);
+      box-shadow: inset 0 0 22px rgba(54, 214, 216, 0.22);
+      position: relative;
+    }
+
+    .watch-face::before,
+    .watch-face::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-origin: left center;
+      background: var(--ink);
+      border-radius: 2px;
+    }
+
+    .watch-face::before {
+      width: 30px;
+      height: 2px;
+      transform: rotate(-32deg);
+    }
+
+    .watch-face::after {
+      width: 23px;
+      height: 2px;
+      transform: rotate(78deg);
+      background: var(--cyan);
+    }
+
+    .bridge {
+      display: grid;
+      place-items: center;
+      color: var(--cyan);
+      font-weight: 900;
+    }
+
+    .bridge span {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(54, 214, 216, 0.45);
+      background: rgba(54, 214, 216, 0.08);
+      border-radius: 8px;
+    }
+
+    .passport-lines {
+      width: 76%;
+      display: grid;
+      gap: 9px;
+    }
+
+    .passport-lines i {
+      display: block;
+      height: 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .passport-lines i:nth-child(1) {
+      width: 55%;
+      background: rgba(228, 184, 92, 0.62);
+    }
+
+    .passport-lines i:nth-child(2) {
+      width: 82%;
+    }
+
+    .passport-lines i:nth-child(3) {
+      width: 68%;
+      background: rgba(54, 214, 216, 0.48);
+    }
+
+    .section {
+      padding: 76px 0;
+      border-top: 1px solid var(--line);
+      scroll-margin-top: 92px;
+    }
+
+    .whitepaper-layer {
+      scroll-margin-top: 92px;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(280px, 0.48fr);
+      gap: 32px;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+
+    .section h2 {
+      font-size: 38px;
+      line-height: 1.12;
+      margin-bottom: 12px;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .section-kicker {
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin-bottom: 8px;
+    }
+
+    .section-summary {
+      border-left: 3px solid var(--cyan);
+      padding: 12px 0 12px 16px;
+      color: var(--muted);
+    }
+
+    .stack-grid {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .stack-nav {
+      position: sticky;
+      top: 92px;
+      border: 1px solid var(--line);
+      background: rgba(13, 17, 24, 0.82);
+      border-radius: var(--radius);
+      padding: 10px;
+    }
+
+    .stack-nav button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 6px;
+      padding: 10px;
+      color: var(--muted);
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .stack-nav button:hover,
+    .stack-nav button.active {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--line);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex: 0 0 auto;
+    }
+
+    .whitepaper-layer {
+      border: 1px solid var(--line-strong);
+      background: rgba(13, 17, 24, 0.66);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .whitepaper-layer > header {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: start;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .whitepaper-layer .badge {
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      border-radius: 8px;
+      font-weight: 900;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .whitepaper-layer h3 {
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    .whitepaper-layer p {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .toggle-layer {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .whitepaper-layer.collapsed .layer-content {
+      display: none;
+    }
+
+    .layer-content {
+      padding: 18px;
+    }
+
+    .layer-brief {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+      align-items: stretch;
+    }
+
+    .brief-panel {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.035);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .brief-panel h4 {
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+
+    .brief-panel p {
+      color: var(--muted);
+      margin-bottom: 0;
+      font-size: 14px;
+    }
+
+    .module-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin: 16px 0 10px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .module-title h4 {
+      margin-bottom: 0;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .module-title span {
+      color: var(--quiet);
+      font-size: 12px;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .content-card,
+    .detail-panel {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius);
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .content-card h4,
+    .detail-panel h4 {
+      color: var(--accent);
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .content-card p,
+    .detail-panel p {
+      color: var(--muted);
+      margin-bottom: 0;
+      font-size: 14px;
+    }
+
+    .rail-flow {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .rail-flow.compact {
+      margin-top: 0;
+    }
+
+    .rail-step {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.035);
+      border-radius: var(--radius);
+      padding: 12px;
+      min-height: 116px;
+    }
+
+    .rail-step strong {
+      display: block;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .rail-step span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .passport-lab {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(360px, 0.62fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .passport-screen {
+      border: 1px solid var(--line-strong);
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .passport-top {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    .passport-seal {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      border: 1px solid rgba(228, 184, 92, 0.48);
+      background: rgba(228, 184, 92, 0.1);
+      border-radius: 8px;
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .passport-top h3 {
+      font-size: 22px;
+      margin-bottom: 3px;
+    }
+
+    .passport-top p {
+      color: var(--muted);
+      margin-bottom: 0;
+      font-size: 13px;
+    }
+
+    .chain-pill {
+      border: 1px solid rgba(54, 214, 216, 0.42);
+      color: var(--cyan);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .passport-body {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 18px;
+      padding: 18px;
+    }
+
+    .asset-photo {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      min-height: 340px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.18)),
+        rgba(255, 255, 255, 0.04);
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 18px;
+      padding: 20px;
+    }
+
+    .watch-large {
+      width: 164px;
+      height: 164px;
+      border-radius: 50%;
+      border: 10px solid rgba(228, 184, 92, 0.76);
+      position: relative;
+      background:
+        radial-gradient(circle, rgba(255, 255, 255, 0.16) 0 5%, transparent 6%),
+        conic-gradient(from 0deg, rgba(54, 214, 216, 0.18), rgba(228, 184, 92, 0.18), rgba(143, 124, 255, 0.18), rgba(54, 214, 216, 0.18)),
+        #090d13;
+      box-shadow: inset 0 0 34px rgba(0, 0, 0, 0.78), 0 18px 50px rgba(0, 0, 0, 0.34);
+    }
+
+    .watch-large::before,
+    .watch-large::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      height: 3px;
+      border-radius: 2px;
+      transform-origin: left center;
+    }
+
+    .watch-large::before {
+      width: 54px;
+      background: var(--ink);
+      transform: rotate(-38deg);
+    }
+
+    .watch-large::after {
+      width: 42px;
+      background: var(--cyan);
+      transform: rotate(82deg);
+    }
+
+    .watch-large i {
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      background: rgba(255, 255, 255, 0.76);
+      border-radius: 50%;
+    }
+
+    .watch-large i:nth-child(1) { left: 50%; top: 10px; transform: translateX(-50%); }
+    .watch-large i:nth-child(2) { right: 10px; top: 50%; transform: translateY(-50%); }
+    .watch-large i:nth-child(3) { left: 50%; bottom: 10px; transform: translateX(-50%); }
+    .watch-large i:nth-child(4) { left: 10px; top: 50%; transform: translateY(-50%); }
+
+    .asset-caption {
+      width: 100%;
+      display: grid;
+      gap: 8px;
+    }
+
+    .micro-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 7px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .micro-row strong {
+      color: var(--ink);
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .passport-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .passport-tab {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .passport-tab.active {
+      color: var(--ink);
+      border-color: var(--cyan);
+      background: rgba(54, 214, 216, 0.08);
+    }
+
+    .passport-panel {
+      display: none;
+    }
+
+    .passport-panel.active {
+      display: block;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .score-item {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .score-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .score-item strong {
+      font-size: 22px;
+      color: var(--ink);
+    }
+
+    .meter {
+      height: 6px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .meter b {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--gold));
+      width: var(--w);
+    }
+
+    .event-log {
+      display: grid;
+      gap: 10px;
+    }
+
+    .event {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: start;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .event-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.04);
+      font-weight: 900;
+      font-size: 12px;
+    }
+
+    .event h4 {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .event p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 0;
+    }
+
+    .event small {
+      color: var(--quiet);
+      white-space: nowrap;
+    }
+
+    .side-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .protocol-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .protocol-card.featured {
+      border-color: rgba(228, 184, 92, 0.42);
+      background: linear-gradient(135deg, rgba(228, 184, 92, 0.1), rgba(255, 255, 255, 0.035));
+    }
+
+    .protocol-card h3 {
+      color: var(--gold);
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .protocol-card p {
+      color: var(--muted);
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .split-table {
+      display: grid;
+      gap: 8px;
+    }
+
+    .split-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .split-row strong {
+      color: var(--ink);
+    }
+
+    .finance-lab {
+      display: grid;
+      grid-template-columns: 420px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .black-card {
+      position: sticky;
+      top: 92px;
+      border: 1px solid rgba(228, 184, 92, 0.44);
+      border-radius: 8px;
+      min-height: 264px;
+      padding: 24px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 28%),
+        linear-gradient(160deg, #111216, #030406 72%);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.56);
+      overflow: hidden;
+    }
+
+    .black-card::before {
+      content: "";
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      top: 78px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(228, 184, 92, 0.8), transparent);
+    }
+
+    .card-brand {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 72px;
+    }
+
+    .card-brand strong {
+      color: var(--gold);
+      font-size: 20px;
+    }
+
+    .card-chip {
+      width: 42px;
+      height: 32px;
+      border: 1px solid rgba(228, 184, 92, 0.64);
+      background: linear-gradient(135deg, rgba(228, 184, 92, 0.48), rgba(228, 184, 92, 0.12));
+      border-radius: 7px;
+    }
+
+    .card-line {
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .card-amount {
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--ink);
+      line-height: 1;
+      margin-bottom: 14px;
+    }
+
+    .card-foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .finance-pipeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .finance-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .commerce-matrix {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .commerce-panel {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius);
+      padding: 16px;
+      min-height: 220px;
+    }
+
+    .commerce-panel h4 {
+      color: var(--accent);
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .commerce-panel p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .commerce-panel ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .commerce-panel li {
+      margin: 6px 0;
+    }
+
+    .finance-metric {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius);
+      padding: 12px;
+      min-height: 96px;
+    }
+
+    .finance-metric strong {
+      display: block;
+      color: var(--gold);
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .finance-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .pipeline-step {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.045);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .pipeline-step .step-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(228, 184, 92, 0.34);
+      color: var(--gold);
+      background: rgba(228, 184, 92, 0.08);
+      font-weight: 900;
+    }
+
+    .pipeline-step h3 {
+      margin-bottom: 6px;
+      font-size: 17px;
+    }
+
+    .pipeline-step p {
+      color: var(--muted);
+      margin-bottom: 0;
+      font-size: 14px;
+    }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .tech-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      min-height: 190px;
+    }
+
+    .tech-card h3 {
+      color: var(--accent);
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .tech-card p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 0;
+    }
+
+    .closing-map {
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(54, 214, 216, 0.08), rgba(228, 184, 92, 0.06)),
+        rgba(13, 17, 24, 0.78);
+      padding: 22px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+    }
+
+    .closing-card {
+      border: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.18);
+      border-radius: var(--radius);
+      padding: 16px;
+      min-height: 180px;
+    }
+
+    .closing-card h3 {
+      color: var(--accent);
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .closing-card p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 0;
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 28px 0 42px;
+      color: var(--quiet);
+      font-size: 13px;
+    }
+
+    .footer .page-shell {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 1120px) {
+      h1 {
+        font-size: 44px;
+      }
+
+      .hero {
+        min-height: auto;
+      }
+
+      .hero-head,
+      .operating-board,
+      .stage-body,
+      .section-head,
+      .stack-grid,
+      .layer-brief,
+      .passport-lab,
+      .finance-lab {
+        grid-template-columns: 1fr;
+      }
+
+      .operating-board {
+        min-height: 0;
+      }
+
+      .layer-console {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(210px, 1fr));
+        align-self: auto;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x proximity;
+        scrollbar-width: thin;
+      }
+
+      .layer-console .console-title {
+        grid-column: 1 / -1;
+        justify-self: start;
+        width: min(100%, calc(100vw - clamp(24px, 4vw, 48px)));
+      }
+
+      .layer-button {
+        scroll-snap-align: start;
+      }
+
+      .stack-nav,
+      .black-card {
+        position: static;
+      }
+
+      .stack-nav {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-width: thin;
+      }
+
+      .stack-nav button {
+        flex: 0 0 auto;
+        width: auto;
+        white-space: nowrap;
+      }
+
+      .stage-side {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .content-grid,
+      .reader-path,
+      .commerce-matrix,
+      .visual-row,
+      .visual-row.four,
+      .tech-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .passport-body {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page-shell,
+      .topbar-inner {
+        width: min(100% - 24px, 1440px);
+      }
+
+      .topbar-inner {
+        grid-template-columns: 1fr;
+        padding: 10px 0;
+      }
+
+      .brand {
+        justify-content: flex-start;
+      }
+
+      .nav {
+        justify-content: flex-start;
+      }
+
+      .compact-action {
+        display: none;
+      }
+
+      .hero {
+        min-height: auto;
+        padding-top: 28px;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      .lead {
+        font-size: 16px;
+      }
+
+      .hero-stats,
+      .reader-path,
+      .content-grid,
+      .score-grid,
+      .commerce-matrix,
+      .visual-row,
+      .visual-row.four,
+      .tech-grid,
+      .closing-map {
+        grid-template-columns: 1fr;
+      }
+
+      .layer-button {
+        grid-template-columns: 42px 1fr;
+      }
+
+      .layer-arrow {
+        display: none;
+      }
+
+      .stage-header,
+      .whitepaper-layer > header,
+      .event {
+        grid-template-columns: 1fr;
+      }
+
+      .stage-badge,
+      .event small,
+      .chain-pill {
+        justify-self: start;
+      }
+
+      .stage-side {
+        grid-template-columns: 1fr;
+      }
+
+      .whitepaper-layer > header {
+        grid-template-columns: 42px minmax(0, 1fr);
+      }
+
+      .whitepaper-layer > header .toggle-layer {
+        grid-column: 1 / -1;
+        justify-self: stretch;
+      }
+
+      .visual-arrowline {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .visual-arrowline::before,
+      .visual-arrowline::after {
+        display: none;
+      }
+
+      .twin-diagram {
+        grid-template-columns: 1fr;
+      }
+
+      .bridge span {
+        transform: rotate(90deg);
+      }
+
+      .passport-top {
+        grid-template-columns: 58px 1fr;
+      }
+
+      .chain-pill {
+        grid-column: 1 / -1;
+      }
+
+      .section {
+        padding: 54px 0;
+        scroll-margin-top: 126px;
+      }
+
+      .whitepaper-layer {
+        scroll-margin-top: 126px;
+      }
+
+      .section h2 {
+        font-size: 30px;
+      }
+
+      .black-card {
+        min-height: 236px;
+      }
+
+      .card-amount {
+        font-size: 28px;
+      }
+    }
+
+    @media (min-width: 521px) and (max-width: 760px) {
+      .hero-stats,
+      .reader-path,
+      .content-grid,
+      .score-grid,
+      .commerce-matrix,
+      .tech-grid,
+      .closing-map {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .stage-side {
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      }
+    }
+
+    @media (max-width: 520px) {
+      .page-shell,
+      .topbar-inner {
+        width: min(100% - 18px, 1440px);
+      }
+
+      body::before {
+        background-size: 44px 44px;
+      }
+
+      .topbar-inner {
+        gap: 10px;
+      }
+
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+      }
+
+      .brand-title {
+        font-size: 15px;
+      }
+
+      .brand-subtitle {
+        font-size: 11px;
+      }
+
+      .nav a {
+        padding: 8px 9px;
+        font-size: 12px;
+      }
+
+      .hero {
+        gap: 18px;
+        padding: 22px 0 36px;
+      }
+
+      h1 {
+        font-size: 30px;
+        line-height: 1.1;
+      }
+
+      .lead {
+        font-size: 15px;
+      }
+
+      .section {
+        padding: 42px 0;
+      }
+
+      .section h2 {
+        font-size: 26px;
+      }
+
+      .section-head {
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+
+      .section-summary {
+        padding-left: 12px;
+      }
+
+      .stage-header,
+      .stage-body,
+      .layer-content,
+      .passport-top,
+      .passport-body,
+      .closing-map {
+        padding: 12px;
+      }
+
+      .stage-header h2 {
+        font-size: 22px;
+      }
+
+      .stage-badge {
+        white-space: normal;
+      }
+
+      .layer-console {
+        padding: 10px;
+        grid-template-columns: repeat(5, minmax(208px, 1fr));
+      }
+
+      .layer-button {
+        padding: 12px;
+      }
+
+      .layer-number,
+      .whitepaper-layer .badge {
+        width: 38px;
+        height: 38px;
+      }
+
+      .whitepaper-layer > header {
+        padding: 14px;
+        gap: 12px;
+      }
+
+      .whitepaper-layer h3 {
+        font-size: 19px;
+      }
+
+      .module-title {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .flow-card,
+      .reader-step,
+      .stat,
+      .brief-panel,
+      .content-card,
+      .detail-panel,
+      .commerce-panel,
+      .protocol-card,
+      .pipeline-step,
+      .tech-card,
+      .closing-card {
+        padding: 14px;
+      }
+
+      .flow-card,
+      .rail-step,
+      .commerce-panel,
+      .tech-card,
+      .closing-card {
+        min-height: 0;
+      }
+
+      .layer-visual {
+        min-height: 0;
+        padding: 12px;
+      }
+
+      .passport-seal {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+      }
+
+      .passport-top {
+        grid-template-columns: 48px minmax(0, 1fr);
+      }
+
+      .passport-top h3 {
+        font-size: 18px;
+      }
+
+      .asset-photo {
+        min-height: 248px;
+        padding: 16px;
+      }
+
+      .watch-large {
+        width: 128px;
+        height: 128px;
+        border-width: 8px;
+      }
+
+      .event small {
+        white-space: normal;
+      }
+
+      .black-card {
+        min-height: 220px;
+        padding: 20px;
+      }
+
+      .black-card::before {
+        left: 16px;
+        right: 16px;
+        top: 70px;
+      }
+
+      .card-brand {
+        margin-bottom: 48px;
+      }
+
+      .card-foot {
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .pipeline-step {
+        grid-template-columns: 44px minmax(0, 1fr);
+        gap: 12px;
+      }
+
+      .pipeline-step .step-icon {
+        width: 44px;
+        height: 44px;
+      }
+    }
+
+    @media (max-width: 340px) {
+      h1 {
+        font-size: 27px;
+      }
+
+      .stage-flow,
+      .rail-flow,
+      .finance-metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .brand-subtitle {
+        display: none;
+      }
+
+      .split-row {
+        grid-template-columns: 1fr;
+        text-align: left;
+      }
+
+      .micro-row,
+      .card-foot {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+      }
+
+      .micro-row strong {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#top" aria-label="RIVEX Group Operating Map">
+        <span class="brand-mark">R</span>
+        <span>
+          <span class="brand-title">RIVEX Group</span>
+          <span class="brand-subtitle">營運地圖 / 白皮書探索器</span>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Whitepaper sections">
+        <a href="#map">總圖</a>
+        <a href="#stack">四層架構</a>
+        <a href="#passport">數字孿生護照</a>
+        <a href="#finance">金融 + 黑卡</a>
+        <a href="#tech">技術與節點</a>
+        <a href="rivex-development-blueprint.html">合夥人藍圖</a>
+        <a href="rivex-department-task-system.html">任務系統</a>
+      </nav>
+      <div class="top-actions" aria-label="頁面操作">
+        <button class="compact-action" type="button" id="expandAll">
+          <span>−</span>
+          收合全部
+        </button>
+        <a class="portal-action" href="index.html">返回入口（Choose Page）</a>
+        <button class="portal-action logout-action" type="button" data-logout>登出（Log out）</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero page-shell" id="map">
+      <div class="hero-head">
+        <div>
+          <div class="eyebrow">高價值收藏品 RWA 營運系統 / RWA Operating System</div>
+          <h1>從一件實物收藏，到一個可交易、可借貸、可上鏈執行的資產協議。</h1>
+          <p class="lead">
+            RIVEX Group 將高價值非標收藏品拆成四個連續階段：數字化、標準化、系統化、金融化。
+            用戶先在 RIVEX App 裡建立資產資料，再經 Origin 確權掃描與 RRS 評級形成數字孿生護照，最後接入智能代理網絡、托管庫、金融、市場與區塊鏈基礎設施。
+          </p>
+          <div class="reader-path" aria-label="RIVEX operating path">
+            <div class="reader-step" style="--accent: var(--cyan)">
+              <strong>01 數字化</strong>
+              <span>先把實物、證書、用戶意向與市場數據變成資產資料。</span>
+            </div>
+            <div class="reader-step" style="--accent: var(--gold)">
+              <strong>02 標準化</strong>
+              <span>用 Origin、AI 鑑定與 RRS 評級生成可追溯的數字孿生護照；王獻冠、劉賢焯作為 3D 視覺與標準化顧問補強。</span>
+            </div>
+            <div class="reader-step" style="--accent: var(--violet)">
+              <strong>03 系統化</strong>
+              <span>透過智能代理、托管庫與合作方網絡，讓資產進入可執行流程。</span>
+            </div>
+            <div class="reader-step" style="--accent: var(--green)">
+              <strong>04 金融化</strong>
+              <span>形成授信、黑卡、抵押借貸、預售預付款、所有權交易、以物易物與鏈上合約。</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-stats" aria-label="RIVEX operating highlights">
+          <div class="stat">
+            <strong>4 層</strong>
+            <span>RIVEX App 入口、標準化鑑定、智能代理協同、金融與鏈上執行</span>
+          </div>
+          <div class="stat">
+            <strong>1 份護照</strong>
+            <span>每件實物對應一份可追溯的數字孿生護照（Digital Twin Passport）</span>
+          </div>
+          <div class="stat">
+            <strong>每次交易</strong>
+            <span>交易前追加一次低成本 RIVEX 品相認證紀錄</span>
+          </div>
+          <div class="stat">
+            <strong>$5M+</strong>
+            <span>託管資產達 500 萬美元門檻後，啟用 RIVEX 黑卡與資產支持授信額度</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="operating-board">
+        <aside class="layer-console" aria-label="Layer selector">
+          <div class="console-title">
+            <h2>一層一層展開</h2>
+            <span>點擊切換</span>
+          </div>
+          <button class="layer-button active" type="button" data-layer="digital" style="--accent: var(--cyan)">
+            <span class="layer-number">0</span>
+            <span class="layer-copy">
+              <strong>數字化入口</strong>
+              <small>RIVEX App + 智能層（Intelligence）：拍照建檔、AI 估值、收藏管理、資產追蹤、交易入口與權限化放盤。</small>
+            </span>
+            <span class="layer-arrow">›</span>
+          </button>
+          <button class="layer-button" type="button" data-layer="standard" style="--accent: var(--gold)">
+            <span class="layer-number">1</span>
+            <span class="layer-copy">
+              <strong>標準化確權</strong>
+              <small>Origin 掃描、AI 鑑定、RRS 評級與數字孿生護照（Digital Twin Passport）。</small>
+            </span>
+            <span class="layer-arrow">›</span>
+          </button>
+          <button class="layer-button" type="button" data-layer="system" style="--accent: var(--violet)">
+            <span class="layer-number">2</span>
+            <span class="layer-copy">
+              <strong>系統化協同</strong>
+              <small>智能代理網絡連接用戶、商家、鑑定方、托管庫、保險、資金方與市場。</small>
+            </span>
+            <span class="layer-arrow">›</span>
+          </button>
+          <button class="layer-button" type="button" data-layer="finance" style="--accent: var(--green)">
+            <span class="layer-number">3</span>
+            <span class="layer-copy">
+              <strong>金融化執行</strong>
+              <small>金融、交易市場與區塊鏈執行（Finance / Market / Blockchain Execution）：授信、借貸、交易、預售、以物易物、鏈上結算。</small>
+            </span>
+            <span class="layer-arrow">›</span>
+          </button>
+          <button class="layer-button" type="button" data-layer="shield" style="--accent: var(--rose)">
+            <span class="layer-number">4</span>
+            <span class="layer-copy">
+              <strong>安全與生態層</strong>
+              <small>安全屏障（Shield）、保險、合規、護照節點（Passport Node）分成與長期傳承。</small>
+            </span>
+            <span class="layer-arrow">›</span>
+          </button>
+        </aside>
+
+        <article class="stage" style="--accent: var(--cyan)" id="stageCard">
+          <header class="stage-header">
+            <div>
+              <h2 id="stageTitle">Step 0：數字化入口 — RIVEX App</h2>
+              <p id="stageLead">把用戶手中的收藏，先變成可管理、可估值、可行動的數字資產檔案。</p>
+            </div>
+            <span class="stage-badge" id="stageBadge">App / 智能層</span>
+          </header>
+          <div class="stage-body">
+            <div>
+              <div class="stage-flow" id="stageFlow"></div>
+              <div class="layer-visual" id="stageVisual" aria-label="Layer-specific visual" aria-live="polite"></div>
+            </div>
+            <aside class="stage-side">
+              <div class="signal-card">
+                <h3>核心輸入</h3>
+                <ul id="stageInputs"></ul>
+              </div>
+              <div class="signal-card">
+                <h3>核心輸出</h3>
+                <ul id="stageOutputs"></ul>
+              </div>
+              <div class="signal-card">
+                <h3>戰略意義</h3>
+                <ul id="stageMeaning"></ul>
+              </div>
+            </aside>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="stack">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">白皮書架構 / Whitepaper Stack</div>
+            <h2>RIVEX Group 的完整業務分塊</h2>
+            <p>
+              這裡不是把產品名平鋪，而是按資產生命週期排列：先進入數據，然後被鑑定與標準化，再進入協同網絡，最後被金融化。
+            </p>
+          </div>
+          <p class="section-summary">
+            每一層都可以獨立創造收入，但真正的壁壘來自層與層之間的數據連續性。
+          </p>
+        </div>
+
+        <div class="stack-grid">
+          <aside class="stack-nav" aria-label="Whitepaper layer shortcuts">
+            <button type="button" class="active" data-scroll-target="layer-digital" style="--accent: var(--cyan)">
+              <span class="dot"></span> 數字化 App
+            </button>
+            <button type="button" data-scroll-target="layer-standard" style="--accent: var(--gold)">
+              <span class="dot"></span> 標準化鑑定
+            </button>
+            <button type="button" data-scroll-target="layer-system" style="--accent: var(--violet)">
+              <span class="dot"></span> 系統化智能代理
+            </button>
+            <button type="button" data-scroll-target="layer-finance" style="--accent: var(--green)">
+              <span class="dot"></span> 金融化執行
+            </button>
+            <button type="button" data-scroll-target="layer-trust" style="--accent: var(--rose)">
+              <span class="dot"></span> 安全與生態
+            </button>
+          </aside>
+
+          <div>
+            <article class="whitepaper-layer" id="layer-digital" style="--accent: var(--cyan)">
+              <header>
+                <span class="badge">0</span>
+                <div>
+                  <h3>數字化：RIVEX App / RIVEX 智能層</h3>
+                  <p>用戶從手機拍照開始，建立第一份收藏資產檔案。App 是流量入口、數據入口、資產入口、追蹤入口、交易入口與金融操作入口。</p>
+                </div>
+                <button class="toggle-layer" type="button">收合</button>
+              </header>
+              <div class="layer-content">
+                <div class="layer-brief">
+                  <div class="brief-panel">
+                    <h4>本層定位</h4>
+                    <p>數字化層負責把用戶持有或想要持有的實物收藏轉化為 RIVEX 可以識別、估值、管理、追蹤、放盤與後續執行的第一份資產資料。</p>
+                  </div>
+                  <div class="brief-panel">
+                    <h4>核心輸出</h4>
+                    <p>資產卡、估值區間、證書資料、配件紀錄、追蹤清單、買方需求信號、放盤可見性、交易與借貸意向，會成為 Origin 鑑定、護照生成與市場撮合的輸入。</p>
+                  </div>
+                </div>
+                <div class="module-title">
+                  <h4>功能模組</h4>
+                  <span>從建檔到可行動</span>
+                </div>
+                <div class="content-grid">
+                  <div class="content-card">
+                    <h4>Snap It / 拍攝建檔</h4>
+                    <p>手機拍攝腕錶、紅酒、包袋、珠寶、藝術品、潮玩或球鞋，自動建立資產卡與圖像記錄。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>Know It / 專家解讀</h4>
+                    <p>用戶可與專家大模型和資產管家大模型互動，理解品牌、型號、年份、故事、真偽線索、品相、估值、成交參考、稀缺度、成交量、成交額與流動性。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>Manage It / 資產管理</h4>
+                    <p>集中管理估值、狀態、持有成本、保險、存放地點、品類、標籤、追蹤清單、交易與借貸意向。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>Action / 行動執行</h4>
+                    <p>從每張資產卡進入鑑定、Origin 掃描、托管庫托管、追蹤提醒、放盤、瀏覽放盤、借貸、出售、智能代理執行與護照鑄造。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>瀏覽放盤 / Browse Listings</h4>
+                    <p>未來用戶可在 App 內查看與自己資產相關的放盤、成交參考、相似資產和潛在置換標的。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>Track It / 資產追蹤</h4>
+                    <p>用戶可追蹤自己喜歡但尚未持有的目標資產、品牌型號、年份、材質、稀缺配置或價格區間；未來一旦有人放盤，App 會觸發提醒、推薦購買入口，或交給市場代理撮合。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>Permissioned Listing / 權限化放盤</h4>
+                    <p>用戶可自行放盤，並由賣家按資產等級、護照狀態、會員等級或邀請名單設定可見範圍，讓高價值資產只展示給合資格買家。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>Auction Insight / 拍賣洞察</h4>
+                    <p>整合拍賣行與二級市場歷史數據，分析溢價、成交頻率、成交量、成交額、買賣價差、價格波動、流動性與清算折價。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>專家代理 / Specialized Agents</h4>
+                    <p>侍酒師代理（Sommelier Agent）、腕錶專家代理（Horologist Agent）、造型與奢侈品代理（Stylist Agent）、市場洞察代理（Insight Agent）與資產管家大模型，分別理解酒、錶、奢侈品、交易流動性與整體資產組合。</p>
+                  </div>
+                </div>
+                <div class="module-title">
+                  <h4>數據流</h4>
+                  <span>App 層沉澱 RWA 底座</span>
+                </div>
+                <div class="rail-flow compact">
+                  <div class="rail-step"><strong>用戶輸入</strong><span>照片、配件、證書、購買價、持有時間、交易意向與追蹤偏好。</span></div>
+                  <div class="rail-step"><strong>AI 補全</strong><span>品牌、型號、年份、市場可比資料、成交量、成交額與估值區間。</span></div>
+                  <div class="rail-step"><strong>資產圖譜</strong><span>每位用戶形成自己的收藏庫、追蹤清單、風險分佈與流動性視圖。</span></div>
+                  <div class="rail-step"><strong>行動入口</strong><span>導向鑑定、托管、借貸、追蹤提醒、放盤、瀏覽放盤、交易、保險和智能代理執行。</span></div>
+                  <div class="rail-step"><strong>權限市場</strong><span>買方需求與賣方放盤由市場代理匹配；賣家可按資產等級、護照狀態、會員等級或邀請名單控制可見性。</span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="whitepaper-layer" id="layer-standard" style="--accent: var(--gold)">
+              <header>
+                <span class="badge">1</span>
+                <div>
+                  <h3>標準化：Origin 確權掃描 / RRS 評級 / 數字孿生護照</h3>
+                  <p>非標資產要進入金融世界，必須先被鑑定、評級、建模、確權。這一層是 RIVEX 的標準話語權。</p>
+                </div>
+                <button class="toggle-layer" type="button">收合</button>
+              </header>
+              <div class="layer-content">
+                <div class="layer-brief">
+                  <div class="brief-panel">
+                    <h4>本層定位</h4>
+                    <p>這一層把「非標品」拆成可驗證的實物證據、可量化的品相分數、可金融化的風險參數。</p>
+                  </div>
+                  <div class="brief-panel">
+                    <h4>協議銜接</h4>
+                    <p>數字孿生護照（Digital Twin Passport）承載鏈上紀錄、重鑄關係、交易前認證與節點分成，是標準化資產進入協議層的核心容器。</p>
+                  </div>
+                  <div class="brief-panel">
+                    <h4>顧問補強</h4>
+                    <p>標準化層已補入前奧比中光 3D 視覺核心顧問：王獻冠偏 Origin / Passport 產品化、SDK/API、第三方節點與產業合作；劉賢焯偏 3D 視覺算法、深度相機標定、3D 重建、SLAM、AI 鑑定與 RRS 技術標準。</p>
+                  </div>
+                </div>
+                <div class="module-title">
+                  <h4>標準化模組</h4>
+                  <span>從物理證據到金融參數</span>
+                </div>
+                <div class="content-grid">
+                  <div class="content-card">
+                    <h4>RIVEX Origin / 確權掃描</h4>
+                    <p>法醫級物理確權硬件，進行微米級掃描、360 度光場捕捉、材質分析、細節指紋與高精度 3D 建模。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>AI 鑑定引擎</h4>
+                    <p>結合圖片、證書、配件、序列號、物理特徵和歷史資料，判斷真偽、異常、修復或拼裝風險。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>RIVEX Rating System / RIVEX 評級系統</h4>
+                    <p>將主觀品相拆解成可量化項目：劃痕、磨損、完整性、材質、功能、配件、維修歷史與原裝程度。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>金融風險評級</h4>
+                    <p>輸出流動性分數（liquidity score）、風險分數（risk score）、估值（estimated value）、可貸價值（loanable value）、清算價值（liquidation value）與 LTV 建議；流動性會參考成交量、成交額、成交深度、換手率與買賣價差。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>數字孿生護照摘要 / Digital Twin Passport</h4>
+                    <p>包含資產 ID（asset_id）、Origin 評級（origin_grade）、真偽分數（authenticity_score）、3D 模型哈希、鏈上紀錄、交易與鑑定歷史。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>第三方標準採用</h4>
+                    <p>透過 API、白皮書、專利、行業協會與節點合作，讓第三方也能採用 RIVEX 標準生成數字孿生護照。</p>
+                  </div>
+                </div>
+                <div class="module-title">
+                  <h4>標準化顧問組</h4>
+                  <span>前奧比中光 3D 視覺能力補強</span>
+                </div>
+                <div class="content-grid">
+                  <div class="content-card">
+                    <h4>王獻冠 / Wang Xianguan</h4>
+                    <p>博士背景，長期參與 3D 視覺產品、SDK/API、開發者生態與產業合作落地。放在 RIVEX 中，適合補強 Origin 硬件產品化、數字孿生護照標準包、第三方節點採用與商務合作路線。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>劉賢焯 / Liu Xianzhuo</h4>
+                    <p>博士，深耕 3D 視覺實驗室、機器人與 AI 開發者產品線，能力覆蓋深度相機、標定、3D 重建、SLAM 與視覺算法。放在 RIVEX 中，適合補強 Origin 掃描算法、AI 鑑定、RRS 評級模型與授權節點技術標準。</p>
+                  </div>
+                </div>
+                <div class="module-title">
+                  <h4>標準化流程</h4>
+                  <span>一件實物變成一份數字孿生護照</span>
+                </div>
+                <div class="rail-flow compact">
+                  <div class="rail-step"><strong>實物資產</strong><span>腕錶、酒、珠寶、藝術品等高價值收藏。</span></div>
+                  <div class="rail-step"><strong>Origin 掃描</strong><span>高清影像、3D 模型、材質與細節指紋。</span></div>
+                  <div class="rail-step"><strong>AI 鑑定</strong><span>真偽驗證、品相量化、風險提示。</span></div>
+                  <div class="rail-step"><strong>RRS 評級</strong><span>標準化分數與金融可用性判斷。</span></div>
+                  <div class="rail-step"><strong>數字孿生護照</strong><span>一件實物對應一份可追溯數字身份。</span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="whitepaper-layer" id="layer-system" style="--accent: var(--violet)">
+              <header>
+                <span class="badge">2</span>
+                <div>
+                  <h3>系統化：智能代理網絡 / 合作方網絡 / 托管庫系統</h3>
+                  <p>標準化後的資產不只是資料，而是可以驅動一整個服務網絡自動協同。</p>
+                </div>
+                <button class="toggle-layer" type="button">收合</button>
+              </header>
+              <div class="layer-content">
+                <div class="layer-brief">
+                  <div class="brief-panel">
+                    <h4>本層定位</h4>
+                    <p>系統化層將已標準化的數字孿生護照轉化為可被智能代理、商家、托管庫、保險和資金方共同調用的操作介面。</p>
+                  </div>
+                  <div class="brief-panel">
+                    <h4>核心輸出</h4>
+                    <p>當智能代理能確認估值、品相、托管與合作方狀態，金融與市場模組才能真正執行授信、交易和清算。</p>
+                  </div>
+                </div>
+                <div class="module-title">
+                  <h4>智能代理職責</h4>
+                  <span>每個智能代理對應一個可執行環節</span>
+                </div>
+                <div class="content-grid">
+                  <div class="content-card">
+                    <h4>用戶代理 / User Agent</h4>
+                    <p>幫用戶管理收藏、解讀估值、提醒保養、維護追蹤清單，並建議購買、出售或抵押時機。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>估值代理 / Valuation Agent</h4>
+                    <p>根據市場數據、拍賣紀錄、成交量、成交額、成交深度、換手率、流動性、品相與稀缺度持續更新估值。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>鑑定代理 / Authentication Agent</h4>
+                    <p>調用 Origin 資料、圖片、證書和歷史紀錄，生成鑑定初判與覆核任務。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>市場代理 / Market Agent</h4>
+                    <p>匹配買家追蹤清單、賣家放盤、交易商、拍賣行、家辦、App 放盤、權限化放盤（permissioned listing）、委託出售、預售預付款與以物易物意向。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>借貸代理 / Lending Agent</h4>
+                    <p>根據估值、LTV、托管庫狀態、保險狀態、市場交易量、交易額、成交深度與期限匹配資金方。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>托管庫代理 / Vault Agent</h4>
+                    <p>管理入庫、出庫、IoT 監控、保險、質押狀態與贖回流程。</p>
+                  </div>
+                </div>
+                <div class="module-title">
+                  <h4>合作網絡</h4>
+                  <span>讓資產服務被編排，而不是人工拼接</span>
+                </div>
+                <div class="rail-flow compact">
+                  <div class="rail-step"><strong>合作商家</strong><span>經銷商、鑑定方、保養方、奢侈品服務商。</span></div>
+                  <div class="rail-step"><strong>拍賣行</strong><span>市場價格、委託出售、預售預付款、清算渠道與兜底網絡。</span></div>
+                  <div class="rail-step"><strong>托管庫</strong><span>物理控制、托管、鎖定、贖回與交割。</span></div>
+                  <div class="rail-step"><strong>保險方</strong><span>資產保險、貸款保障與極端事件賠付。</span></div>
+                  <div class="rail-step"><strong>資金方</strong><span>私人銀行、家辦、基金、DeFi 或 RWA 流動性池。</span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="whitepaper-layer" id="layer-finance" style="--accent: var(--green)">
+              <header>
+                <span class="badge">3</span>
+                <div>
+                  <h3>金融化：金融 / 市場 / 區塊鏈執行</h3>
+                  <p>讓沉睡收藏品變成可授信、可消費、可抵押、可預售、可更換所有權、可交換、可清算、可鏈上結算的 RWA。</p>
+                </div>
+                <button class="toggle-layer" type="button">收合</button>
+              </header>
+              <div class="layer-content">
+                <div class="layer-brief">
+                  <div class="brief-panel">
+                    <h4>本層定位</h4>
+                    <p>金融化層將已托管、已鑑定、已上鏈的實物資產轉化為可授信、可借貸、可預售、可交易、可交換、可清算的金融資產。</p>
+                  </div>
+                  <div class="brief-panel">
+                    <h4>產品閉環</h4>
+                    <p>RIVEX 金融、RIVEX 市場與區塊鏈執行層共同構成資產授信、交易撮合、所有權變更、以物易物與鏈上結算閉環。</p>
+                  </div>
+                </div>
+                <div class="module-title">
+                  <h4>金融化三大模組</h4>
+                  <span>金融 / 市場 / 區塊鏈執行</span>
+                </div>
+                <div class="commerce-matrix">
+                  <div class="commerce-panel" style="--accent: var(--green)">
+                    <h4>RIVEX 金融 / RIVEX Finance</h4>
+                    <p>把托管資產轉化為可用資金與信用能力。</p>
+                    <ul>
+                      <li>授信額度（Credit line）：基於估值、LTV、流動性、托管庫狀態與保險生成授信額度。</li>
+                      <li>RIVEX 黑卡（RIVEX Black Card）：託管資產達 500 萬美元以上的用戶可使用資產授信額度消費。</li>
+                      <li>抵押借貸（Collateral lending）：支持抵押借貸、展期、逾期計息與拍賣清算。</li>
+                      <li>委託預付款（Consign advance）：委託出售或預售時，可先獲得部分預付款。</li>
+                    </ul>
+                  </div>
+                  <div class="commerce-panel" style="--accent: var(--gold)">
+                    <h4>RIVEX Market / RIVEX 市場</h4>
+                    <p>把已驗證資產變成可撮合、可轉讓、可交換的市場標的。</p>
+                    <ul>
+                      <li>驗證放盤（Verified listing）：只有完成護照與品相認證的資產可以進入市場。</li>
+                      <li>資產追蹤（Asset tracking）：買家可追蹤目標品牌、型號、年份、配置或價格區間，形成可撮合的需求池。</li>
+                      <li>權限化可見性（Permissioned visibility）：賣家可按資產等級、護照狀態、會員等級、資產等級或邀請名單控制誰能看到放盤。</li>
+                      <li>所有權轉讓（Ownership transfer）：買家購買數字所有權後，托管庫同步更新權益人。</li>
+                      <li>委託出售 / 預售（Consignment / presale）：賣家委託出售，先拿部分現金，成交後結算尾款。</li>
+                      <li>資產交換（Asset swap）：未來支持以物易物，用兩份護照做價值差額結算。</li>
+                    </ul>
+                  </div>
+                  <div class="commerce-panel" style="--accent: var(--blue)">
+                    <h4>Blockchain Execution / 區塊鏈執行</h4>
+                    <p>把交易條件、權益變更和費用分配寫入可執行協議。</p>
+                    <ul>
+                      <li>交易前認證（Pre-trade certification）：交易前追加最新品相紀錄。</li>
+                      <li>智能結算（Smart settlement）：所有權、抵押狀態、托管庫權益與付款同步更新。</li>
+                      <li>交換合約（Swap contract）：以物易物時鎖定兩份護照，計算差額並同步交割。</li>
+                      <li>費用拆分（Fee split）：RIVEX、節點、托管庫與合作方按協議分成。</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="module-title">
+                  <h4>金融產品細項</h4>
+                  <span>資產授信、交易、預售與合約執行</span>
+                </div>
+                <div class="content-grid">
+                  <div class="content-card">
+                    <h4>RIVEX 金融 / RIVEX Finance</h4>
+                    <p>托管資產與 RIVEX 簽約後，根據估值、品相、保險、托管庫狀態，以及類似股票市場的成交量、成交額、成交深度、換手率與買賣價差監控，獲得對應的資產支持授信額度。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>RIVEX 黑卡 / RIVEX Black Card</h4>
+                    <p>託管資產超過 500 萬美元的用戶可獲得黑卡，直接以資產授信額度進行消費。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>Interest Logic / 利息邏輯</h4>
+                    <p>用戶正常還款不產生額外利息；若逾期未還或發生違約，才開始計息並進入風控流程。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>Auction Recovery / 拍賣清算</h4>
+                    <p>若違約，RIVEX 可按合約拍賣托管資產，扣除本金、利息、服務費與拍賣費後，剩餘款項返還用戶。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>RIVEX Market / RIVEX 市場</h4>
+                    <p>驗證放盤（Verified Listing）、App 內放盤、資產追蹤、買方需求池、權限化可見性、AI 智能撮合、驗證資產市場、數字所有權交易、委託出售、預售預付款、以物易物與跨境低摩擦流通。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>智能合約 / Smart Contracts</h4>
+                    <p>NFT 所有權、抵押狀態、交易結算、預售預付款、以物易物、贖回權、分割所有權、租賃使用權與清算規則。</p>
+                  </div>
+                </div>
+                <div class="module-title">
+                  <h4>金融化執行流程</h4>
+                  <span>從簽約托管到所有權變更與違約處理</span>
+                </div>
+                <div class="rail-flow compact">
+                  <div class="rail-step"><strong>簽約托管</strong><span>用戶將資產交由 RIVEX 或合作托管庫受控托管。</span></div>
+                  <div class="rail-step"><strong>授信額度</strong><span>基於資產價值、RRS、LTV、保險、成交量、成交額、換手率與成交深度生成資產支持授信額度。</span></div>
+                  <div class="rail-step"><strong>市場選項</strong><span>用戶可選擇黑卡消費、抵押借貸、委託出售、預售預付款、直接交易或以物易物。</span></div>
+                  <div class="rail-step"><strong>鏈上執行</strong><span>合約同步更新所有權、抵押狀態、托管庫權益、付款與節點分成。</span></div>
+                  <div class="rail-step"><strong>清算結算</strong><span>違約或出售時拍賣資產、扣除費用、結清欠款，剩餘返還。</span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="whitepaper-layer" id="layer-trust" style="--accent: var(--rose)">
+              <header>
+                <span class="badge">4</span>
+                <div>
+                  <h3>安全與生態：安全屏障 / 護照節點 / 傳承服務</h3>
+                  <p>RIVEX 的信任不是只靠鏈上，而是技術、物理、保險、節點激勵與長期傳承一起構成。</p>
+                </div>
+                <button class="toggle-layer" type="button">收合</button>
+              </header>
+              <div class="layer-content">
+                <div class="layer-brief">
+                  <div class="brief-panel">
+                    <h4>本層定位</h4>
+                    <p>安全與生態層把「信任」拆成四件事：鏈上可驗證、物理可控制、風險可承保、節點有長期分成。</p>
+                  </div>
+                  <div class="brief-panel">
+                    <h4>商業意義</h4>
+                    <p>數字孿生護照不只是一次性鑄造，而是能在未來交易、認證、查驗、重鑄和金融使用中持續產生協議收入。</p>
+                  </div>
+                </div>
+                <div class="module-title">
+                  <h4>信任與生態模組</h4>
+                  <span>從安全保障到節點激勵</span>
+                </div>
+                <div class="content-grid">
+                  <div class="content-card">
+                    <h4>技術安全屏障 / Technology Shield</h4>
+                    <p>區塊鏈不可篡改、多重簽名、合約審計、操作日誌、權限控制與風控監測。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>物理安全屏障 / Physical Shield</h4>
+                    <p>銀行級托管庫、恒溫恒濕、24/7 物聯網監控、出入庫審核，確保實物與數字孿生護照一對一對應。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>保險安全屏障 / Insurance Shield</h4>
+                    <p>高價值資產承保、事故賠付、貸款方保障與極端情況下的物理資產安全。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>護照發行節點 / Passport Issuer Node</h4>
+                    <p>幫 RIVEX 生成護照的授權節點公司，未來在該護照被交易使用時可持續獲得佣金分成。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>協議收入 / Protocol Revenue</h4>
+                    <p>交易費、認證費、重鑄費、API 費、托管庫費、借貸利差、保險返點與數據授權。</p>
+                  </div>
+                  <div class="content-card">
+                    <h4>RIVEX Legacy / 傳承服務</h4>
+                    <p>高淨值家庭收藏檔案長期保存、繼承安排、資產權益交接與數字世界永續記錄。</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="passport">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">區塊鏈基礎設施 / Blockchain Infrastructure</div>
+            <h2>數字孿生護照：上鏈發行、交易前認證、節點長期分成</h2>
+            <p>
+              數字孿生護照是 RIVEX 把「實物腕錶」轉成「可追溯數字資產」的核心容器。它不只是 NFT，也不是靜態證書，而是會隨著每一次認證、交易、抵押、贖回不斷追加紀錄的資產履歷。
+            </p>
+          </div>
+          <p class="section-summary">
+            每一次交易執行前，都先做一筆低成本 RIVEX 品相認證，認證結果追加進護照，再進入交易合約。
+          </p>
+        </div>
+
+        <div class="module-title">
+          <h4>護照運行閉環 / Passport Operating Loop</h4>
+          <span>從護照發行到收益分配</span>
+        </div>
+        <div class="rail-flow compact" style="--accent: var(--gold); margin-bottom: 18px">
+          <div class="rail-step"><strong>Issue / 發行</strong><span>Origin 掃描與 RRS 評級後，在 RIVEX 協議（RIVEX Protocol）發行護照。</span></div>
+          <div class="rail-step"><strong>Certify / 認證</strong><span>每次交易前做低成本品相認證，確保交易基於最新品相狀態。</span></div>
+          <div class="rail-step"><strong>Append / 追加</strong><span>最新認證不覆蓋舊資料，而是追加到護照時間線。</span></div>
+          <div class="rail-step"><strong>Execute / 執行</strong><span>合約讀取最新護照、托管庫、保險與所有權狀態後，執行交易、預售預付款、抵押或以物易物。</span></div>
+          <div class="rail-step"><strong>Share / 分成</strong><span>護照發行節點與服務節點在後續使用中取得分成。</span></div>
+        </div>
+
+        <div class="passport-lab">
+          <article class="passport-screen">
+            <header class="passport-top">
+              <span class="passport-seal">P</span>
+              <div>
+                <h3>ORIGIN-2026-WATCH-001284</h3>
+                <p>Rolex Daytona 116500LN / 數字孿生護照 / 由 RIVEX 協議發行</p>
+              </div>
+              <span class="chain-pill">Ethereum + Polygon 鏈上發行</span>
+            </header>
+            <div class="passport-body">
+              <aside class="asset-photo">
+                <div class="watch-large" aria-hidden="true">
+                  <i></i><i></i><i></i><i></i>
+                </div>
+                <div class="asset-caption">
+                  <div class="micro-row"><span>資產 ID / Asset ID</span><strong>ORIGIN-001284</strong></div>
+                  <div class="micro-row"><span>Origin 評級 / Origin Grade</span><strong>A / 94.6</strong></div>
+                  <div class="micro-row"><span>真偽分數 / Authenticity</span><strong>99.2%</strong></div>
+                  <div class="micro-row"><span>托管狀態 / Custody Status</span><strong>已鎖定</strong></div>
+                  <div class="micro-row"><span>最新紀錄 / Latest Record</span><strong>交易前認證</strong></div>
+                </div>
+              </aside>
+
+              <div>
+                <div class="passport-tabs" role="tablist" aria-label="Passport tabs">
+                  <button class="passport-tab active" type="button" data-passport-tab="identity">身份資料</button>
+                  <button class="passport-tab" type="button" data-passport-tab="condition">品相紀錄</button>
+                  <button class="passport-tab" type="button" data-passport-tab="chain">鏈上執行</button>
+                  <button class="passport-tab" type="button" data-passport-tab="royalty">節點分成</button>
+                </div>
+
+                <section class="passport-panel active" id="passport-identity">
+                  <div class="score-grid">
+                    <div class="score-item">
+                      <span>Scratch / 劃痕</span>
+                      <strong>96</strong>
+                      <div class="meter"><b style="--w: 96%"></b></div>
+                    </div>
+                    <div class="score-item">
+                      <span>Wear / 磨損</span>
+                      <strong>92</strong>
+                      <div class="meter"><b style="--w: 92%"></b></div>
+                    </div>
+                    <div class="score-item">
+                      <span>Integrity / 完整性</span>
+                      <strong>98</strong>
+                      <div class="meter"><b style="--w: 98%"></b></div>
+                    </div>
+                    <div class="score-item">
+                      <span>Material / 材質</span>
+                      <strong>95</strong>
+                      <div class="meter"><b style="--w: 95%"></b></div>
+                    </div>
+                  </div>
+                  <div class="detail-panel" style="margin-top: 12px; --accent: var(--cyan)">
+                    <h4>護照內容</h4>
+                    <ul>
+                      <li>手錶品牌、型號、年份、序列號、附件、來源與所有權狀態。</li>
+                      <li>Origin 掃描生成的高清細節、3D 模型哈希、品相評分與真偽分數。</li>
+                      <li>托管庫入庫狀態、抵押狀態、交易歷史、認證歷史與贖回權。</li>
+                    </ul>
+                  </div>
+                </section>
+
+                <section class="passport-panel" id="passport-condition">
+                  <div class="event-log" style="--accent: var(--gold)">
+                    <div class="event">
+                      <span class="event-num">01</span>
+                      <div>
+                        <h4>首次 Origin 認證 / Initial Origin Certification</h4>
+                        <p>首次掃描、AI 鑑定、RRS 評級，生成數字孿生護照。</p>
+                      </div>
+                      <small>2026-04-02</small>
+                    </div>
+                    <div class="event">
+                      <span class="event-num">02</span>
+                      <div>
+                        <h4>托管庫鎖定 / Custody Lock</h4>
+                        <p>實物進入 RIVEX 托管庫，護照記錄托管與保險狀態。</p>
+                      </div>
+                      <small>2026-04-06</small>
+                    </div>
+                    <div class="event">
+                      <span class="event-num">03</span>
+                      <div>
+                        <h4>交易前品相認證 / Pre-trade Condition Certification</h4>
+                        <p>每次交易執行前完成一次低成本 RIVEX 品相認證，追加最新紀錄，讓腕錶越交易越可追溯。</p>
+                      </div>
+                      <small>交易前 / Before Trade</small>
+                    </div>
+                    <div class="event">
+                      <span class="event-num">04</span>
+                      <div>
+                        <h4>護照重鑄選項 / Remint Option</h4>
+                        <p>若用戶需要更新結構、遷移合約或重建資料，可作廢舊護照並付費重新鑄造，舊紀錄保留重鑄脈絡。</p>
+                      </div>
+                      <small>按需處理 / On Demand</small>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="passport-panel" id="passport-chain">
+                  <div class="event-log" style="--accent: var(--violet)">
+                    <div class="event">
+                      <span class="event-num">A</span>
+                      <div>
+                        <h4>發行護照 NFT / Issue Passport NFT</h4>
+                        <p>數字孿生護照在區塊鏈基礎設施上發行，包含手錶細節、評分、3D 哈希與資料哈希。</p>
+                      </div>
+                      <small>鑄造 / Mint</small>
+                    </div>
+                    <div class="event">
+                      <span class="event-num">B</span>
+                      <div>
+                        <h4>追加認證紀錄 / Append Certification Record</h4>
+                        <p>交易前認證結果不是覆蓋舊資料，而是新增一條紀錄，形成可審計的品相時間線。</p>
+                      </div>
+                      <small>追加 / Append</small>
+                    </div>
+                    <div class="event">
+                      <span class="event-num">C</span>
+                      <div>
+                        <h4>執行交易或借貸合約 / Execute Trade or Lending Contract</h4>
+                        <p>合約讀取最新護照狀態，確認托管庫、品相、保險與所有權後執行交易、預售預付款、抵押或以物易物。</p>
+                      </div>
+                      <small>結算 / Settle</small>
+                    </div>
+                    <div class="event">
+                      <span class="event-num">D</span>
+                      <div>
+                        <h4>作廢並重鑄 / Invalidate and Remint</h4>
+                        <p>付費重鑄時，舊護照作廢但不抹除，新的護照繼承鏈接，避免追溯斷裂。</p>
+                      </div>
+                      <small>重鑄 / Remint</small>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="passport-panel" id="passport-royalty">
+                  <div class="detail-panel" style="--accent: var(--green)">
+                    <h4>護照發行節點的長期收益 / Passport Issuer Node</h4>
+                    <p>
+                      幫 RIVEX 生成該護照的節點公司，不只是收一次鑄造費。只要這份護照在後續交易、借貸、重鑄、認證或 API 查驗中被使用，系統都可以根據協議把服務費拆分給原始發行節點。
+                    </p>
+                  </div>
+                  <div class="event-log" style="--accent: var(--green); margin-top: 12px">
+                    <div class="event">
+                      <span class="event-num">1</span>
+                      <div>
+                        <h4>首次護照費 / Initial Passport Fee</h4>
+                        <p>首次 Origin 掃描、鑑定、建模與鑄造費。</p>
+                      </div>
+                      <small>一次性</small>
+                    </div>
+                    <div class="event">
+                      <span class="event-num">2</span>
+                      <div>
+                        <h4>交易前認證費 / Pre-trade Certification Fee</h4>
+                        <p>每次交易前低成本品相認證，節點可按角色分成。</p>
+                      </div>
+                      <small>每次交易</small>
+                    </div>
+                    <div class="event">
+                      <span class="event-num">3</span>
+                      <div>
+                        <h4>交易佣金分成 / Transaction Commission Share</h4>
+                        <p>護照被用於交易結算時，交易服務費按規則分給 RIVEX、節點、托管庫或合作方。</p>
+                      </div>
+                      <small>持續性</small>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </article>
+
+          <aside class="side-stack">
+            <div class="protocol-card featured">
+              <h3>交易前必做：RIVEX 品相認證</h3>
+              <p>
+                每一次護照被用於交易前，系統先發起低成本認證。認證可以由 RIVEX Origin、授權節點或托管庫端設備完成，結果追加到護照。
+              </p>
+              <div class="split-table">
+                <div class="split-row"><span>目的</span><strong>防止舊狀態交易</strong></div>
+                <div class="split-row"><span>成本</span><strong>低成本高頻</strong></div>
+                <div class="split-row"><span>結果</span><strong>新增紀錄</strong></div>
+                <div class="split-row"><span>價值</span><strong>越交易越可信</strong></div>
+              </div>
+            </div>
+
+            <div class="protocol-card">
+              <h3>護照可作廢並重鑄</h3>
+              <p>
+                若資產資料需要重建、合約需要升級，或用戶希望生成新的護照，可以付費作廢舊護照並重新鑄造。舊紀錄不刪除，而是作為重鑄脈絡（lineage）保留，防止歷史斷裂。
+              </p>
+              <div class="split-table">
+                <div class="split-row"><span>舊護照 / Old Passport</span><strong>作廢 / Invalidated</strong></div>
+                <div class="split-row"><span>新護照 / New Passport</span><strong>重鑄 / Reminted</strong></div>
+                <div class="split-row"><span>歷史紀錄 / History</span><strong>鏈接保留 / Linked</strong></div>
+              </div>
+            </div>
+
+            <div class="protocol-card">
+              <h3>節點公司分成邏輯</h3>
+              <p>
+                授權護照節點（Authorized Passport Node）幫 RIVEX 生成護照，就像資產進入協議的發行節點。未來只要該護照被用於交易、借貸、認證、API 查驗或重鑄，節點都可以取得佣金分成。
+              </p>
+              <div class="split-table">
+                <div class="split-row"><span>RIVEX 協議 / RIVEX Protocol</span><strong>協議收入</strong></div>
+                <div class="split-row"><span>發行節點 / Issuer Node</span><strong>發行分成</strong></div>
+                <div class="split-row"><span>認證節點 / Cert Node</span><strong>認證分成</strong></div>
+                <div class="split-row"><span>托管庫 / 合作方</span><strong>服務分成</strong></div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="finance">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">RIVEX 金融 / RIVEX Finance</div>
+            <h2>授信、預售、所有權交易與以物易物的資產金融化引擎</h2>
+            <p>
+              RIVEX 金融（RIVEX Finance）的核心不是傳統貸款頁面，而是把已托管、已鑑定、已上鏈的高價值實物資產，轉換為日常可用的授信額度、委託出售預付款、所有權交易與資產交換能力。
+            </p>
+          </div>
+          <p class="section-summary">
+            用戶可以刷卡消費、抵押借貸、委託出售先拿預付款、直接轉讓所有權，未來也可以透過兩份數字孿生護照做以物易物與差額結算。
+          </p>
+        </div>
+
+        <div class="finance-lab">
+          <aside class="black-card" aria-label="RIVEX Black Card preview">
+            <div class="card-brand">
+              <strong>RIVEX BLACK</strong>
+              <span class="card-chip"></span>
+            </div>
+            <div class="card-line">資產支持授信額度 / Asset-backed Credit</div>
+            <div class="card-amount">$2,800,000</div>
+            <div class="card-foot">
+              <span>合資格資產：$5M+</span>
+              <span>托管庫已鎖定</span>
+            </div>
+          </aside>
+
+          <div class="finance-pipeline">
+            <div class="finance-metrics">
+              <div class="finance-metric">
+                <strong>$5M+</strong>
+                <span>託管資產門檻，符合資格後啟用 RIVEX 黑卡。</span>
+              </div>
+              <div class="finance-metric">
+                <strong>授信額度</strong>
+                <span>由數字孿生護照、RRS、托管庫、保險、市場估值與交易流動性共同決定。</span>
+              </div>
+              <div class="finance-metric">
+                <strong>利息觸發</strong>
+                <span>正常還款不額外計息；逾期或違約才觸發利息。</span>
+              </div>
+              <div class="finance-metric">
+                <strong>清算回收</strong>
+                <span>拍賣清算後扣除費用，剩餘資金返還給用戶。</span>
+              </div>
+            </div>
+            <div class="commerce-matrix">
+              <div class="commerce-panel" style="--accent: var(--green)">
+                <h4>借貸與消費 / Borrow & Spend</h4>
+                <p>資產仍在托管庫，護照進入抵押或授信狀態。</p>
+                <ul>
+                  <li>授信額度根據估值、LTV、成交量、成交額、保險與清算折價生成。</li>
+                  <li>黑卡消費直接占用授信額度。</li>
+                  <li>逾期後才觸發利息、追加保證金或清算流程。</li>
+                </ul>
+              </div>
+              <div class="commerce-panel" style="--accent: var(--gold)">
+                <h4>委託出售與預售 / Consign & Presale</h4>
+                <p>用戶不想立刻借款，也可以委託出售並先取得部分預付款。</p>
+                <ul>
+                  <li>RIVEX 根據資產流動性、成交深度與預估成交價給出預付比例。</li>
+                  <li>成交後扣除預付款、服務費、保險與拍賣/交易費，尾款返還用戶。</li>
+                  <li>若未成交，可轉入展期、降價、借貸或取回流程。</li>
+                </ul>
+              </div>
+              <div class="commerce-panel" style="--accent: var(--blue)">
+                <h4>交易與以物易物 / Trade & Swap</h4>
+                <p>市場交易不只是一口價買賣，也可以做所有權更換與以物易物。</p>
+                <ul>
+                  <li>所有權轉讓（Ownership transfer）：買家付款後，護照與托管庫權益人同步更新。</li>
+                  <li>資產交換（Asset swap）：雙方資產都鎖定護照，按估值差額補款或抵扣。</li>
+                  <li>鏈上合約負責資金、權益、節點分成與紀錄追加。</li>
+                </ul>
+              </div>
+            </div>
+            <div class="pipeline-step">
+              <span class="step-icon">01</span>
+              <div>
+                <h3>托管資產簽約</h3>
+                <p>用戶將腕錶、紅酒、珠寶、藝術品等資產與 RIVEX 或合作托管庫簽署托管與授信合約。資產進入受控狀態，避免重複抵押或私下轉移。</p>
+              </div>
+            </div>
+            <div class="pipeline-step">
+              <span class="step-icon">02</span>
+              <div>
+                <h3>生成可用授信額度</h3>
+                <p>系統根據數字孿生護照、RRS 品相分數、市場估值、成交量、成交額、成交深度、換手率、買賣價差、托管庫狀態、保險覆蓋與清算折價，計算可用授信額度。</p>
+              </div>
+            </div>
+            <div class="pipeline-step">
+              <span class="step-icon">03</span>
+              <div>
+                <h3>$5M+ 用戶獲得 RIVEX 黑卡</h3>
+                <p>託管資產超過 500 萬美元的高淨值用戶，可以拿到黑卡，直接用資產授信額度刷卡消費。</p>
+              </div>
+            </div>
+            <div class="pipeline-step">
+              <span class="step-icon">04</span>
+              <div>
+                <h3>逾期後計息</h3>
+                <p>用戶正常還款時，黑卡作為資產支持的消費額度運作；若逾期未還或發生違約，才開始計息，並觸發提醒、追加保證金或清算準備。</p>
+              </div>
+            </div>
+            <div class="pipeline-step">
+              <span class="step-icon">05</span>
+              <div>
+                <h3>拍賣清算與剩餘返還</h3>
+                <p>若違約，RIVEX 按合約將托管資產進入拍賣或合作渠道出售。扣除本金、利息、服務費、保險費、拍賣費後，剩餘款項返還給用戶。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="tech">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">功能與技術版圖 / Function and Technology Map</div>
+            <h2>功能與技術版圖</h2>
+            <p>
+              RIVEX 的防禦力不是單一功能，而是資料、硬件、模型、協議、節點、托管庫和金融合約互相咬合。
+            </p>
+          </div>
+          <p class="section-summary">
+            最終定位：全球高價值實物資產的數字身份層、標準制定層、交易協同層與金融執行層。
+          </p>
+        </div>
+
+        <div class="tech-grid">
+          <div class="tech-card" style="--accent: var(--cyan)">
+            <h3>Mobile + Asset Steward AI / 行動端與資產管家 AI</h3>
+            <p>App 拍照建檔、OCR 證書識別、Vision AI 識別、專家大模型與資產管家大模型，負責品牌型號補全、估值解讀、組合管理、目標資產追蹤、相關放盤推薦與行動建議。</p>
+          </div>
+          <div class="tech-card" style="--accent: var(--gold)">
+            <h3>Origin Hardware / Origin 確權硬件</h3>
+            <p>微米級掃描、光場捕捉、3D 建模、材質識別、序列號與細節指紋，構成實物證據包；王獻冠可補產品化、SDK/API、節點採用與硬件合作路線。</p>
+          </div>
+          <div class="tech-card" style="--accent: var(--violet)">
+            <h3>RRS + Risk Models / RRS 與風險模型</h3>
+            <p>真偽分數、品相評級、成交量、成交額、成交深度、換手率、買賣價差、流動性分數、清算折價、可貸額度與資產風險模型；劉賢焯可補 3D 視覺、深度標定、重建與算法標準。</p>
+          </div>
+          <div class="tech-card" style="--accent: var(--green)">
+            <h3>智能代理網絡 / Agent Network</h3>
+            <p>用戶代理、估值代理、鑑定代理、市場代理、借貸代理、托管庫代理、合規代理與執行代理，和資產管家大模型協同，支持 App 內放盤、資產追蹤、買家需求池、買賣匹配與可見性控制。</p>
+          </div>
+          <div class="tech-card" style="--accent: var(--blue)">
+            <h3>護照協議 / Passport Protocol</h3>
+            <p>資產 ID、元資料哈希、3D 模型哈希、最新品相認證、放盤可見性、交易歷史、追蹤需求關聯、重鑄脈絡與節點分成。</p>
+          </div>
+          <div class="tech-card" style="--accent: var(--orange)">
+            <h3>Smart Contracts / 智能合約</h3>
+            <p>NFT 鑄造、交易結算、所有權更換、抵押鎖定、預售預付款、以物易物、分割所有權、租賃、贖回、清算與費用拆分。</p>
+          </div>
+          <div class="tech-card" style="--accent: var(--rose)">
+            <h3>托管庫與物聯網 / Vault + IoT</h3>
+            <p>智能紅酒櫃、腕錶保險櫃、藝術品庫房、恒溫恒濕、入出庫紀錄、物理鎖定與保險同步。</p>
+          </div>
+          <div class="tech-card" style="--accent: var(--gold)">
+            <h3>Finance Engine / 金融引擎</h3>
+            <p>授信額度、黑卡、LTV、成交量與成交額監控、流動性預警、利息觸發、展期、委託出售預付款、所有權交易、以物易物、拍賣清算與剩餘返還。</p>
+          </div>
+        </div>
+
+        <div class="closing-map" style="margin-top: 20px">
+          <div class="closing-card" style="--accent: var(--cyan)">
+            <h3>1. 把實物數字化</h3>
+            <p>用 App 與 AI 讓每件收藏品先進入可管理的數字資產庫。</p>
+          </div>
+          <div class="closing-card" style="--accent: var(--gold)">
+            <h3>2. 把非標標準化</h3>
+            <p>用 Origin、RRS 與數字孿生護照建立可驗證、可追溯、可採用的標準。</p>
+          </div>
+          <div class="closing-card" style="--accent: var(--violet)">
+            <h3>3. 把資產系統化</h3>
+            <p>用智能代理、托管庫、合作網絡和 API 讓服務方、資金方與市場協同。</p>
+          </div>
+          <div class="closing-card" style="--accent: var(--green)">
+            <h3>4. 把收藏金融化</h3>
+            <p>讓資產可以授信、刷卡、借貸、預售、交易、以物易物、分割、清算與上鏈執行。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="page-shell">
+      <span>RIVEX Group 營運地圖 / Operating Map</span>
+      <span>數字化 → 標準化 → 系統化 → 金融化</span>
+    </div>
+  </footer>
+
+  <script>
+    const stageData = {
+      digital: {
+        accent: "var(--cyan)",
+        title: "Step 0：數字化入口 — RIVEX App",
+        lead: "把用戶手中的收藏，先變成可拍攝建檔、可交互了解、可管理、可行動的數字資產檔案。",
+        badge: "App / 智能層",
+        flow: [
+          ["Snap It / 拍攝建檔", "拍攝實物、配件、證書和購買資料，自動生成資產卡。"],
+          ["Know It / 專家解讀", "通過專家大模型互動了解資產故事、真偽線索、品相、估值、成交參考、稀缺度與流動性。"],
+          ["Manage It / 資產管理", "管理收藏庫、追蹤清單、持有成本、保險、托管庫狀態、交易意向與借貸意向。"],
+          ["Action / 行動執行", "一鍵進入鑑定、托管、追蹤提醒、放盤、瀏覽放盤、交易、借貸、保險與護照鑄造。"]
+        ],
+        inputs: ["實物照片", "購買紀錄", "盒單證書", "用戶問題與偏好", "追蹤清單", "放盤可見性設定"],
+        outputs: ["資產卡", "專家模型解讀", "估值區間", "收藏組合視圖", "追蹤提醒", "買方需求信號", "相關放盤", "後續鑑定與金融入口"],
+        meaning: ["形成 RWA 資產資料底座", "把專家能力變成 App 交互入口", "讓每件收藏從認知進入行動"],
+        visual: `
+          <div class="visual-map">
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="mini-phone"><i></i><i></i><i></i><i></i></div>
+                <strong>Mobile Capture / 行動端拍攝</strong>
+                <span>照片、證書、配件、用戶意向</span>
+              </div>
+              <div class="visual-center">
+                <strong>Asset Steward LLM / 資產管家大模型</strong>
+                <span>專家大模型用對話理解酒、錶、包、珠寶、追蹤清單、相關放盤與整體組合</span>
+              </div>
+              <div class="visual-card">
+                <div class="visual-lines"><i></i><i></i><i></i><i></i></div>
+                <strong>Manage + Action / 管理與執行</strong>
+                <span>收藏管理、估值視圖、流動性、鑑定、追蹤提醒、放盤、瀏覽放盤、托管與借貸建議</span>
+              </div>
+            </div>
+            <div class="visual-arrowline"><span>拍攝建檔 → 專家解讀 → 資產管理 → 行動執行</span></div>
+          </div>
+        `
+      },
+      standard: {
+        accent: "var(--gold)",
+        title: "Step 1：標準化確權 — Origin + RRS + 數字孿生護照",
+        lead: "用硬件、AI、評級體系與 3D 視覺顧問能力，把非標實物轉成可驗證、可評價、可採用的數字資產標準。",
+        badge: "Origin / RRS / 護照",
+        flow: [
+          ["Origin 掃描", "微米級細節、光場捕捉、3D 建模、材質和序列號指紋。"],
+          ["AI 鑑定", "判斷真偽、修復、替換、異常、附件完整度和品相。"],
+          ["RRS 評級", "量化劃痕、磨損、完整性、材質、功能與金融風險。"],
+          ["顧問校準", "王獻冠補產品化與節點採用，劉賢焯補 3D 視覺、標定、重建與算法標準。"],
+          ["護照鑄造", "生成包含評分、3D 哈希與鏈上紀錄的數字孿生護照。"]
+        ],
+        inputs: ["Origin 掃描包", "證書配件", "市場可比資料", "成交量與成交額", "專家覆核", "3D 視覺顧問校準"],
+        outputs: ["真偽分數", "Origin 評級", "3D 模型哈希", "RRS 技術標準", "數字孿生護照"],
+        meaning: ["建立行業標準", "讓資產可被金融機構讀取", "形成 RIVEX 數據與標準護城河", "把顧問經驗轉成可複用節點規範"],
+        visual: `
+          <div class="visual-map">
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="watch-face"></div>
+                <strong>Physical Asset / 實物資產</strong>
+                <span>實物腕錶、序列號、附件與來源</span>
+              </div>
+              <div class="visual-center">
+                <strong>Origin Scan + RRS / 掃描與評級</strong>
+                <span>微米級掃描、AI 鑑定、品相評分、風險參數；王獻冠 / 劉賢焯作為 3D 視覺與標準化顧問校準</span>
+              </div>
+              <div class="visual-card">
+                <div class="passport-lines"><i></i><i></i><i></i><i></i></div>
+                <strong>數字孿生護照 / Digital Twin Passport</strong>
+                <span>3D hash、評分、所有權與鏈上記錄</span>
+              </div>
+            </div>
+            <div class="visual-arrowline"><span>掃描 → 評級 → 護照</span></div>
+          </div>
+        `
+      },
+      system: {
+        accent: "var(--violet)",
+        title: "Step 2：系統化協同 — 智能代理 + 合作方 + 托管庫",
+        lead: "讓資產資料驅動整個服務網絡，連接用戶、鑑定方、商家、托管庫、保險、資金方和市場。",
+        badge: "智能代理網絡",
+        flow: [
+          ["用戶代理 / User Agent", "理解用戶收藏、偏好、資產狀態和下一步需求。"],
+          ["市場代理 / Market Agent", "匹配買家追蹤清單、賣家放盤、App 放盤、交易商、拍賣行、權限化放盤與出價意向。"],
+          ["借貸代理 / Lending Agent", "根據 LTV、托管庫、保險、估值與市場交易流動性匹配資金。"],
+          ["托管庫代理 / Vault Agent", "管理入庫、出庫、物聯網監控、鎖定、贖回和交割。"]
+        ],
+        inputs: ["護照狀態", "市場數據", "成交量/成交額", "合作方 API", "托管庫與保險資料"],
+        outputs: ["撮合建議", "借貸方案", "托管指令", "合規與執行任務"],
+        meaning: ["RIVEX 不只做工具，而是做網絡", "合作方越多，護照越有價值", "資產從記錄進入可執行流程"],
+        visual: `
+          <div class="visual-map">
+            <div class="visual-row four">
+              <div class="visual-node"><strong>用戶代理 / User Agent</strong><span>資產組合與用戶意圖</span></div>
+              <div class="visual-node"><strong>市場代理 / Market Agent</strong><span>追蹤清單、App 放盤、可見性控制、買賣意向與成交深度</span></div>
+              <div class="visual-node"><strong>借貸代理 / Lending Agent</strong><span>LTV、期限與資金方</span></div>
+              <div class="visual-node"><strong>托管庫代理 / Vault Agent</strong><span>托管、鎖定與贖回</span></div>
+            </div>
+            <div class="visual-center">
+              <strong>護照作為操作介面 / Passport as Operating Interface</strong>
+              <span>智能代理、商家、拍賣行、保險、托管庫、資金方共同讀取同一份資產狀態</span>
+            </div>
+          </div>
+        `
+      },
+      finance: {
+        accent: "var(--green)",
+        title: "Step 3：金融化執行 — 金融 + 市場 + 區塊鏈",
+        lead: "讓托管資產形成授信額度，讓用戶可刷卡、可借貸、可預售、可交易、可交換，並用合約完成結算。",
+        badge: "金融 / 市場 / 鏈上執行",
+        flow: [
+          ["授信額度 / Credit Line", "托管資產簽約後，按估值、LTV、成交量、成交額與風控生成可用額度。"],
+          ["委託預付款 / Consign Advance", "委託出售或預售時，按預估成交價與流動性先取得部分預付款。"],
+          ["所有權交易 / Ownership Trade", "買家購買數字所有權，護照與托管庫權益人同步更新。"],
+          ["資產交換 / Asset Swap", "以物易物時鎖定雙方護照，按估值差額補款並鏈上結算。"]
+        ],
+        inputs: ["估值", "LTV", "成交量", "成交額", "成交深度", "托管庫鎖定", "護照最新品相", "保險狀態", "交易/交換意向"],
+        outputs: ["授信額度", "借貸合約", "預售預付款", "所有權變更", "以物易物結算", "清算與剩餘返還"],
+        meaning: ["把收藏從展示價值變成資本效率", "降低變現時間", "讓市場交易方式從出售擴展到預售、交換與所有權流轉"],
+        visual: `
+          <div class="visual-map">
+            <div class="visual-row">
+              <div class="visual-card">
+                <strong>Liquidity Monitor / 流動性監控</strong>
+                <div class="liquidity-bars">
+                  <div class="liquidity-bar"><span>成交量</span><b style="--w: 82%"></b><span>82</span></div>
+                  <div class="liquidity-bar"><span>成交額</span><b style="--w: 68%"></b><span>68</span></div>
+                  <div class="liquidity-bar"><span>深度</span><b style="--w: 74%"></b><span>74</span></div>
+                  <div class="liquidity-bar"><span>價差</span><b style="--w: 42%"></b><span>低</span></div>
+                </div>
+              </div>
+              <div class="visual-center">
+                <strong>Finance / Market / Chain / 金融、市場與鏈上執行</strong>
+                <span>授信、預售預付款、所有權交易、以物易物與鏈上結算共同執行</span>
+              </div>
+              <div class="mini-card">
+                <strong>RIVEX BLACK</strong>
+                <span>資產支持消費</span>
+                <span>$2.8M 授信額度</span>
+              </div>
+            </div>
+            <div class="visual-arrowline"><span>流動性 → 授信 → 執行</span></div>
+          </div>
+        `
+      },
+      shield: {
+        accent: "var(--rose)",
+        title: "Step 4：安全與生態 — 安全屏障 + 節點收入",
+        lead: "用技術、物理、保險、節點激勵和傳承安排，讓護照長期可用、可信、可產生收益。",
+        badge: "安全 / 節點 / 傳承",
+        flow: [
+          ["技術安全 / Technology Shield", "鏈上不可篡改、多簽、合約審計、權限與風控監測。"],
+          ["物理安全 / Physical Shield", "托管庫托管、物聯網監控、恒溫恒濕、入出庫審核。"],
+          ["保險安全 / Insurance Shield", "資產承保、事故賠付、貸款保障與極端情況保護。"],
+          ["發行節點 / Issuer Node", "生成護照的節點在未來交易中持續獲得分成。"]
+        ],
+        inputs: ["鏈上紀錄", "托管庫紀錄", "保險合約", "節點角色"],
+        outputs: ["信任基礎", "交易保障", "節點分成", "長期傳承資料"],
+        meaning: ["讓買家、資金方、用戶都敢相信", "讓節點有長期參與動機", "讓 RIVEX 從產品變成協議生態"],
+        visual: `
+          <div class="visual-map">
+            <div class="visual-row">
+              <div class="visual-card"><strong>技術安全 / Technology Shield</strong><span>多簽、合約審計、鏈上不可篡改</span></div>
+              <div class="visual-card"><strong>物理安全 / Physical Shield</strong><span>托管庫、物聯網、恒溫恒濕與出入庫審核</span></div>
+              <div class="visual-card"><strong>保險安全 / Insurance Shield</strong><span>資產承保、貸款保障與極端情況保護</span></div>
+            </div>
+            <div class="visual-center">
+              <strong>護照節點收入 / Passport Node Revenue</strong>
+              <span>發行節點、認證節點、托管庫與合作方在後續交易和查驗中獲得分成</span>
+            </div>
+          </div>
+        `
+      }
+    };
+
+    const stageCard = document.getElementById("stageCard");
+    const stageTitle = document.getElementById("stageTitle");
+    const stageLead = document.getElementById("stageLead");
+    const stageBadge = document.getElementById("stageBadge");
+    const stageFlow = document.getElementById("stageFlow");
+    const stageVisual = document.getElementById("stageVisual");
+    const stageInputs = document.getElementById("stageInputs");
+    const stageOutputs = document.getElementById("stageOutputs");
+    const stageMeaning = document.getElementById("stageMeaning");
+
+    function renderList(target, items) {
+      target.innerHTML = items.map(item => `<li>${item}</li>`).join("");
+    }
+
+    function renderStage(key) {
+      const data = stageData[key];
+      stageCard.style.setProperty("--accent", data.accent);
+      stageTitle.textContent = data.title;
+      stageLead.textContent = data.lead;
+      stageBadge.textContent = data.badge;
+      stageFlow.innerHTML = data.flow.map((item, index) => `
+        <div class="flow-card">
+          <div class="label">階段 ${index + 1}</div>
+          <h3>${item[0]}</h3>
+          <p>${item[1]}</p>
+        </div>
+      `).join("");
+      stageVisual.innerHTML = data.visual;
+      renderList(stageInputs, data.inputs);
+      renderList(stageOutputs, data.outputs);
+      renderList(stageMeaning, data.meaning);
+      document.querySelectorAll(".layer-button").forEach(button => {
+        button.classList.toggle("active", button.dataset.layer === key);
+      });
+    }
+
+    document.querySelectorAll(".layer-button").forEach(button => {
+      button.addEventListener("click", () => renderStage(button.dataset.layer));
+    });
+
+    renderStage("digital");
+
+    document.querySelectorAll(".toggle-layer").forEach(button => {
+      button.addEventListener("click", () => {
+        const layer = button.closest(".whitepaper-layer");
+        layer.classList.toggle("collapsed");
+        button.textContent = layer.classList.contains("collapsed") ? "展開" : "收合";
+      });
+    });
+
+    const expandAllButton = document.getElementById("expandAll");
+    expandAllButton.addEventListener("click", () => {
+      const layers = document.querySelectorAll(".whitepaper-layer");
+      const shouldExpand = Array.from(layers).some(layer => layer.classList.contains("collapsed"));
+      layers.forEach(layer => {
+        layer.classList.toggle("collapsed", !shouldExpand);
+        layer.querySelector(".toggle-layer").textContent = shouldExpand ? "收合" : "展開";
+      });
+      expandAllButton.innerHTML = shouldExpand ? "<span>−</span>收合全部" : "<span>+</span>展開全部";
+    });
+
+    document.querySelectorAll(".stack-nav button").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".stack-nav button").forEach(item => item.classList.remove("active"));
+        button.classList.add("active");
+        const target = document.getElementById(button.dataset.scrollTarget);
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    document.querySelectorAll(".passport-tab").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".passport-tab").forEach(tab => tab.classList.remove("active"));
+        document.querySelectorAll(".passport-panel").forEach(panel => panel.classList.remove("active"));
+        button.classList.add("active");
+        const target = document.getElementById(`passport-${button.dataset.passportTab}`);
+        if (target) target.classList.add("active");
+      });
+    });
+
+    document.querySelectorAll("[data-logout]").forEach(button => {
+      button.addEventListener("click", () => {
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch (error) {
+          // Static preview can still return to the entry page if storage is unavailable.
+        }
+        window.location.href = "index.html?logout=1";
+      });
+    });
+  </script>
+</body>
+</html>

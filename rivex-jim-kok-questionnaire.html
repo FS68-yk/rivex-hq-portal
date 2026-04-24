@@ -1,0 +1,1544 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jim 共建角色與合作方式確認問卷 - RIVEX</title>
+  <script src="rivex-auth.js"></script>
+  <script>window.RivexAuth && RivexAuth.requireRole("jim");</script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f6f3ea;
+      --muted: #aeb8c7;
+      --quiet: #737f90;
+      --night: #05070b;
+      --surface: #0d1118;
+      --line: rgba(255, 255, 255, 0.12);
+      --line-strong: rgba(255, 255, 255, 0.24);
+      --cyan: #36d6d8;
+      --gold: #e4b85c;
+      --violet: #8f7cff;
+      --green: #68d391;
+      --rose: #ff6b7a;
+      --orange: #ff9f43;
+      --blue: #4ea1ff;
+      --radius: 8px;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(5, 7, 11, 0.96), rgba(7, 9, 13, 0.985)),
+        linear-gradient(135deg, rgba(228, 184, 92, 0.1), transparent 34%, rgba(54, 214, 216, 0.08) 78%, transparent),
+        #05070b;
+      line-height: 1.6;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+      background-size: 68px 68px;
+      mask-image: linear-gradient(to bottom, black, transparent 78%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      color: inherit;
+      font: inherit;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1,
+    h2,
+    h3,
+    p,
+    span,
+    strong,
+    label {
+      overflow-wrap: anywhere;
+    }
+
+    .page-shell {
+      width: min(1100px, calc(100% - clamp(24px, 5vw, 56px)));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: rgba(5, 7, 11, 0.9);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar-inner {
+      min-height: 72px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(228, 184, 92, 0.46);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(228, 184, 92, 0.24), rgba(54, 214, 216, 0.12));
+      color: var(--gold);
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .brand-title {
+      display: block;
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+
+    .brand-subtitle {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      min-width: max-content;
+    }
+
+    .ghost-link,
+    .button {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--muted);
+      cursor: pointer;
+      padding: 9px 11px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .button {
+      min-height: 44px;
+      color: var(--ink);
+    }
+
+    .button.primary {
+      border-color: rgba(228, 184, 92, 0.52);
+      background: linear-gradient(135deg, rgba(228, 184, 92, 0.22), rgba(54, 214, 216, 0.12));
+      font-weight: 900;
+    }
+
+    .button.danger {
+      border-color: rgba(255, 107, 122, 0.34);
+      color: #ffc0c7;
+    }
+
+    .button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .shell {
+      padding: 34px 0 46px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 0.42fr);
+      gap: 18px;
+      align-items: end;
+    }
+
+    .eyebrow {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: clamp(34px, 6vw, 58px);
+      line-height: 1.04;
+      margin-bottom: 14px;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 17px;
+      margin-bottom: 0;
+      max-width: 860px;
+    }
+
+    .status-panel,
+    .question-card,
+    .final-card {
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.03)),
+        rgba(13, 17, 24, 0.84);
+      box-shadow: var(--shadow);
+    }
+
+    .status-panel {
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .status-panel strong {
+      color: var(--ink);
+      display: block;
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+
+    .status-panel span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .progress-track {
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .progress-track i {
+      display: block;
+      width: var(--progress, 0%);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--cyan), var(--gold));
+      transition: width 0.2s ease;
+    }
+
+    .module-tabs {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .module-dot {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--quiet);
+      padding: 6px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .module-dot.active {
+      border-color: color-mix(in srgb, var(--accent, var(--gold)) 62%, var(--line));
+      color: var(--accent, var(--gold));
+      background: color-mix(in srgb, var(--accent, var(--gold)) 13%, #101827);
+    }
+
+    .question-card {
+      overflow: hidden;
+    }
+
+    .question-head {
+      display: grid;
+      gap: 8px;
+      border-bottom: 1px solid var(--line);
+      padding: 18px;
+    }
+
+    .question-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: var(--quiet);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .pill {
+      border: 1px solid color-mix(in srgb, var(--accent, var(--gold)) 54%, var(--line));
+      border-radius: 999px;
+      color: var(--accent, var(--gold));
+      padding: 4px 8px;
+    }
+
+    .question-head h2 {
+      font-size: clamp(24px, 4vw, 38px);
+      line-height: 1.18;
+      margin-bottom: 0;
+    }
+
+    .question-body {
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .option-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .option-card {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--muted);
+      padding: 11px 12px;
+      cursor: pointer;
+      transition: border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .option-card:has(input:checked) {
+      border-color: color-mix(in srgb, var(--accent, var(--gold)) 58%, var(--line));
+      background: color-mix(in srgb, var(--accent, var(--gold)) 12%, rgba(255, 255, 255, 0.035));
+      color: var(--ink);
+    }
+
+    .option-card input {
+      margin-top: 5px;
+      accent-color: var(--gold);
+    }
+
+    .other-input,
+    .text-input,
+    .text-area,
+    .rank-select {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--ink);
+      outline: none;
+    }
+
+    .other-input,
+    .text-input,
+    .rank-select {
+      min-height: 42px;
+      padding: 8px 10px;
+    }
+
+    .other-input {
+      grid-column: 2;
+      margin-top: 4px;
+    }
+
+    .text-area {
+      min-height: min(38vh, 260px);
+      resize: vertical;
+      padding: 12px;
+    }
+
+    .matrix-table {
+      display: grid;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .matrix-head,
+    .matrix-line {
+      display: grid;
+      grid-template-columns: minmax(190px, 1fr) repeat(5, minmax(44px, 0.18fr));
+      align-items: center;
+    }
+
+    .matrix-head {
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--quiet);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .matrix-head span,
+    .matrix-line span,
+    .matrix-line label {
+      padding: 10px;
+    }
+
+    .matrix-line {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .matrix-line label {
+      display: grid;
+      place-items: center;
+    }
+
+    .matrix-line input {
+      accent-color: var(--gold);
+    }
+
+    .ranking-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .ranking-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 126px;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--muted);
+      padding: 10px 12px;
+    }
+
+    .helper {
+      color: var(--quiet);
+      font-size: 12px;
+      margin: 0;
+    }
+
+    .wizard-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      border-top: 1px solid var(--line);
+      padding: 14px 18px;
+    }
+
+    .action-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .final-card {
+      display: grid;
+      gap: 16px;
+      padding: 18px;
+    }
+
+    .final-card h2 {
+      font-size: 32px;
+      line-height: 1.15;
+      margin-bottom: 0;
+    }
+
+    .final-card p {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .submit-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .field-label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .report-preview {
+      display: grid;
+      gap: 10px;
+    }
+
+    .report-preview[hidden] {
+      display: none;
+    }
+
+    .report-output {
+      width: 100%;
+      min-height: 260px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 6px;
+      background: rgba(5, 7, 11, 0.62);
+      color: var(--muted);
+      font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      padding: 12px;
+      resize: vertical;
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      color: var(--quiet);
+      font-size: 13px;
+      padding: 24px 0 38px;
+    }
+
+    @media (max-width: 820px) {
+      .topbar-inner,
+      .intro,
+      .submit-grid {
+        align-items: stretch;
+        grid-template-columns: 1fr;
+      }
+
+      .topbar-inner {
+        display: grid;
+      }
+
+      .top-actions,
+      .wizard-actions,
+      .action-group {
+        justify-content: stretch;
+      }
+
+      .ghost-link,
+      .button {
+        width: 100%;
+      }
+
+      .module-tabs {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .matrix-table {
+        overflow-x: auto;
+      }
+
+      .matrix-head,
+      .matrix-line {
+        min-width: 560px;
+      }
+
+      .ranking-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner page-shell">
+      <a class="brand" href="rivex-jim-kok-role.html" aria-label="返回 Jim 共建角色與合作方式確認">
+        <span class="brand-mark">R</span>
+        <span>
+          <span class="brand-title">RIVEX 集團（RIVEX Group）</span>
+          <span class="brand-subtitle">Jim 共建角色與合作方式確認問卷</span>
+        </span>
+      </a>
+      <div class="top-actions">
+        <a class="ghost-link" href="rivex-jim-kok-role.html">返回確認頁</a>
+        <a class="ghost-link" href="index.html">返回入口（Choose Page）</a>
+        <button class="ghost-link" type="button" data-logout>登出（Log out）</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell page-shell">
+    <section class="intro">
+      <div>
+        <div class="eyebrow">Confirmation Form</div>
+        <h1>Jim 共建角色與合作方式確認問卷</h1>
+        <p class="lead">这份表单用于更完整地了解你对公司方向、未来角色、投入方式及合作结构的想法。每次只显示一题，答案会自动保存。</p>
+      </div>
+      <aside class="status-panel">
+        <div>
+          <strong id="progressText">正在载入问卷</strong>
+          <span id="saveStatus">Auto-save ready</span>
+        </div>
+        <div class="progress-track" aria-hidden="true"><i id="progressBar"></i></div>
+        <div class="module-tabs" id="moduleTabs"></div>
+      </aside>
+    </section>
+
+    <section id="wizardMount"></section>
+  </main>
+
+  <footer class="footer">
+    <div class="page-shell">RIVEX / Jim Role & Cooperation Confirmation Form</div>
+  </footer>
+
+  <script>
+    const ALIGNMENT_STORAGE_KEY = "rivex-jim-alignment-form-v1";
+    const RECIPIENT_STORAGE_KEY = "rivex-jim-alignment-recipient-v1";
+    const LAST_REPORT_KEY = "rivex-jim-alignment-last-report-v1";
+    const DEFAULT_REPORT_EMAIL = "yik@moce.io";
+    const EMAIL_FUNCTION_ENDPOINT = "/.netlify/functions/send-jim-questionnaire";
+
+    const modules = [
+      {
+        title: "第一部分：对公司与 Rivex 整体方向的判断",
+        short: "方向",
+        note: "对方向、壁垒和关键风险的判断。",
+        accent: "var(--gold)",
+        questions: [
+          {
+            id: "q1",
+            type: "radio",
+            title: "1. 你看完材料后，对公司整体业务和 Rivex 方向的整体判断更接近哪一种？",
+            options: [
+              "A. 方向清晰，而且有机会做成一件比较大的事",
+              "B. 整体方向有潜力，但需要进一步聚焦几个最关键的模块",
+              "C. 概念和方向有意思，但落地路径还需要进一步打磨",
+              "D. 目前还需要更多观察和理解"
+            ]
+          },
+          {
+            id: "q2",
+            type: "checkbox",
+            title: "2. 在你看来，Rivex 最有机会建立壁垒的核心是什么？",
+            options: [
+              "A. 收藏品数字化与资产身份",
+              "B. 资产标准化 / metadata / 证据包",
+              "C. Origin / Passport / 链上查验",
+              "D. 系统化协议 / API / 工作流",
+              "E. 交易闭环与链上分润",
+              "F. 估值、RRS 与风险框架",
+              "G. 收藏品借贷与金融化",
+              "H. 资产池打包 / RWA / ABS 可选路径",
+              "I. 机构资金接入",
+              "J. 品牌与市场影响力",
+              { label: "K. 其他（请补充）", other: true }
+            ]
+          },
+          {
+            id: "q3",
+            type: "textarea",
+            title: "3. 你认为 Rivex 从“收藏品科技项目”走向“另类资产金融基础设施 / on-chain asset infrastructure”，最关键的前提是什么？"
+          },
+          {
+            id: "q4",
+            type: "textarea",
+            title: "4. 在你看来，这个方向最大的风险或最难的地方是什么？"
+          }
+        ]
+      },
+      {
+        title: "第二部分：你倾向的角色定位",
+        short: "角色",
+        note: "角色定位、重点贡献方向和 6 个月优先事项。",
+        accent: "var(--cyan)",
+        questions: [
+          {
+            id: "q5",
+            type: "radio",
+            title: "5. 在你参与 Rivex 的设想中，哪种角色最自然？",
+            options: [
+              "A. RIVEX Chief Strategy Officer (CSO) / Partner",
+              "B. MOCE Capital Partner + RIVEX CSO",
+              "C. Partner, Structured Credit & Asset Finance",
+              "D. Build Partner / Business Line Partner",
+              "E. 先以明确阶段进入，再根据投入与成果升级"
+            ]
+          },
+          {
+            id: "q6",
+            type: "matrix",
+            title: "6. 你对以下角色定位的接受度如何？",
+            rows: [
+              "RIVEX Chief Strategy Officer (CSO)",
+              "RIVEX Partner, Asset Standardization / Protocol / Structured Credit",
+              "MOCE Capital Partner",
+              "Partner, On-chain Transaction & Revenue Sharing",
+              "Build Partner / Business Line Partner",
+              "Strategic Advisor（仅作为过渡或轻参与形态）"
+            ]
+          },
+          {
+            id: "q7",
+            type: "checkbox",
+            title: "7. 由你来定义，你最希望和公司共同搭建哪一块？",
+            options: [
+              "A. 资产标准化 / metadata / evidence package",
+              "B. Origin / Passport / 链上查验协议",
+              "C. 系统化工作流 / API / 节点治理",
+              "D. 交易闭环与链上分润模型",
+              "E. 风险、RRS、授信与金融化",
+              "F. 资产池 / RWA / ABS 可选路径",
+              "G. 机构资金 / strategic capital 对接",
+              "H. 公司整体战略升级 / MOCE 资源协同",
+              { label: "I. 其他（请补充）", other: true }
+            ]
+          },
+          {
+            id: "q8",
+            type: "textarea",
+            title: "8. 未来 6 个月只能优先推进三件事时，你建议最先做哪三件？"
+          }
+        ]
+      },
+      {
+        title: "第三部分：投入时间与参与方式",
+        short: "投入",
+        note: "现实投入强度、参与场景和未来升级可能性。",
+        accent: "var(--green)",
+        questions: [
+          {
+            id: "q9",
+            type: "radio",
+            title: "9. 未来 3-6 个月，你现实中大概可以投入多少时间？",
+            options: [
+              "A. 每周固定 1 天",
+              "B. 每周固定 2 天",
+              "C. 每周 2 天以上",
+              "D. 不固定，但可以围绕关键事项深度参与",
+              "E. 目前还不确定"
+            ]
+          },
+          {
+            id: "q10",
+            type: "checkbox",
+            title: "10. 除固定时间外，你可以参与以下哪些事项？",
+            options: [
+              "A. 资产标准 / Passport / 系统化协议讨论",
+              "B. 链上交易 / 分润账本 / 节点经济模型",
+              "C. 关键融资 / 资金方 / 第三方财务公司会议",
+              "D. 产品和系统架构讨论",
+              "E. 外部合作方沟通",
+              "F. 风险框架 / RRS / 授信设计",
+              "G. 重要内部策略会议",
+              "H. 团队招聘或组织搭建",
+              { label: "I. 其他（请补充）", other: true }
+            ]
+          },
+          {
+            id: "q11",
+            type: "radio",
+            title: "11. 你更偏好的参与方式是？",
+            options: [
+              "A. 固定时间、稳定参与",
+              "B. 围绕关键事项深度参与",
+              "C. 偏战略层、低频高质量参与",
+              "D. 视合作进展逐步增加投入"
+            ]
+          },
+          {
+            id: "q12",
+            type: "radio",
+            title: "12. 在合作推进顺利的情况下，你未来 6-12 个月提升投入强度的可能性如何？",
+            options: [
+              "A. 是，可以明显提升",
+              "B. 有可能，但取决于进展",
+              "C. 暂时不太确定",
+              "D. 目前不考虑明显提升"
+            ]
+          }
+        ]
+      },
+      {
+        title: "第四部分：你对公司未来的期待",
+        short: "未来",
+        note: "公司形态、长期价值和个人位置的想象。",
+        accent: "var(--blue)",
+        questions: [
+          {
+            id: "q13",
+            type: "textarea",
+            title: "13. 你希望公司未来 2-3 年最有可能成长成什么样的形态？"
+          },
+          {
+            id: "q14",
+            type: "textarea",
+            title: "14. 对你来说，一家值得长期投入的公司，至少应该具备哪些条件？"
+          },
+          {
+            id: "q15",
+            type: "textarea",
+            title: "15. 你希望自己在这样的平台里，未来扮演什么样的位置？"
+          },
+          {
+            id: "q16",
+            type: "checkbox",
+            title: "16. 你最看重这件事的哪一类长期价值？",
+            options: [
+              "A. 平台本身的长期成长空间",
+              "B. 新业务线的成长空间",
+              "C. 对行业的影响力",
+              "D. 长期股权价值",
+              "E. 现金回报",
+              "F. 个人角色与决策权",
+              "G. 与创始人的长期合作关系",
+              { label: "H. 其他（请补充）", other: true }
+            ]
+          }
+        ]
+      },
+      {
+        title: "第五部分：你对 compensation / equity / economics 的偏好",
+        short: "结构",
+        note: "用偏好和区间理解合作结构。",
+        accent: "var(--orange)",
+        questions: [
+          {
+            id: "q17",
+            type: "radio",
+            title: "17. 对你来说，在 build phase 阶段，以下哪种合作结构更自然？",
+            options: [
+              "A. 较低现金 + 较强长期股权 / ownership",
+              "B. 中等现金 + 中等股权",
+              "C. 较高现金 + 较低股权",
+              "D. 更偏业务分成 / deal economics",
+              "E. 分阶段逐步升级",
+              "F. 视具体职责而定"
+            ]
+          },
+          {
+            id: "q18",
+            type: "ranking",
+            title: "18. 在现阶段，build phase 的合作方式里，你更看重哪一项？",
+            items: [
+              "现金报酬",
+              "长期股权 / option",
+              "业务分成 / economics",
+              "title",
+              "决策权与影响力",
+              "平台成长空间"
+            ]
+          },
+          {
+            id: "q19",
+            type: "textarea",
+            title: "19. 从你的角度看，什么样的现金安排会让你觉得这段合作是认真而合理的？"
+          },
+          {
+            id: "q20",
+            type: "textarea",
+            title: "20. 从你的角度看，什么样的股权 / option 安排会让你觉得这是一个真正长期一致的合作？"
+          },
+          {
+            id: "q21",
+            type: "radio",
+            title: "21. 现阶段做一个取向时，你更偏向：",
+            options: [
+              "A. 更看重长期股权价值",
+              "B. 更看重当前现金回报",
+              "C. 两者都重要，需要平衡",
+              "D. 更看重业务线本身的 economics",
+              "E. 取决于角色与投入强度"
+            ]
+          },
+          {
+            id: "q22",
+            type: "radio",
+            title: "22. 你对分阶段结构的接受度如何：",
+            options: [
+              "A. 先以 build phase 进入，后续根据投入与成果升级现金 / 股权 / 角色",
+              "B. 可以接受，但需要非常清楚升级条件",
+              "C. 更倾向一开始就确定长期结构",
+              "D. 暂时不确定"
+            ]
+          },
+          {
+            id: "q23",
+            type: "radio",
+            title: "23. 你对“固定现金 + 股权 / option + 业务分成”这种三层结构的接受度如何？",
+            options: [
+              "A. 很接受",
+              "B. 基本接受",
+              "C. 需要看具体设计",
+              "D. 不太偏好",
+              { label: "E. 其他（请补充）", other: true }
+            ]
+          }
+        ]
+      },
+      {
+        title: "第六部分：你对“合伙人”这件事的理解",
+        short: "合伙",
+        note: "Partner relationship 对你意味着什么。",
+        accent: "var(--violet)",
+        questions: [
+          {
+            id: "q24",
+            type: "checkbox",
+            title: "24. 对你来说，“合伙人”更重要的是什么？",
+            options: [
+              "A. title",
+              "B. ownership",
+              "C. 决策权",
+              "D. 长期业务共同体",
+              "E. 业务分成与经济参与",
+              "F. 共同对外代表公司",
+              "G. 与创始人之间的长期信任关系"
+            ]
+          },
+          {
+            id: "q25",
+            type: "radio",
+            title: "25. 你更希望自己的回报，主要与哪一类结果挂钩？",
+            options: [
+              "A. 公司整体长期价值",
+              "B. 自己直接搭建出来的业务线",
+              "C. 短中期业务成果",
+              "D. 多种方式结合"
+            ]
+          },
+          {
+            id: "q26",
+            type: "textarea",
+            title: "26. 什么样的合作结构，会让你觉得这是真正意义上的 partner relationship？"
+          }
+        ]
+      },
+      {
+        title: "第七部分：MOCE Capital Partner title 与资源协同",
+        short: "平台",
+        note: "确认 MOCE Capital 层面的 Partner title、投资 / FA 资源共享，以及它与 Rivex 的协同方式。",
+        accent: "var(--green)",
+        questions: [
+          {
+            id: "q27",
+            type: "checkbox",
+            title: "27. 你希望 MOCE Capital 平台层面能够为你提供哪些支持？",
+            options: [
+              "A. MOCE Capital Partner title",
+              "B. 投资项目 / deal flow 资源共享",
+              "C. FA 项目与资本方资源共享",
+              "D. 客户、产业合作方与战略合作网络",
+              "E. 品牌与平台背书",
+              "F. 新业务线搭建平台与团队支持",
+              "G. 资本市场机会",
+              { label: "H. 其他（请补充）", other: true }
+            ]
+          },
+          {
+            id: "q28",
+            type: "textarea",
+            title: "28. 你怎么看 MOCE Capital Partner 身份、投资 / FA 资源与 Rivex 之间未来的协同方式？"
+          },
+          {
+            id: "q29",
+            type: "radio",
+            title: "29. 未来以 partner 身份参与 MOCE Capital 平台层面的业务时，你更期待哪一种方式？",
+            options: [
+              "A. MOCE Capital Partner title + 资源协同",
+              "B. 投资 / FA deal-by-deal economics",
+              "C. 长期业务合伙人路径",
+              "D. 与 RIVEX CSO / Partner 角色形成组合",
+              "E. 未来再逐步明确",
+              { label: "F. 其他（请补充）", other: true }
+            ]
+          }
+        ]
+      },
+      {
+        title: "第八部分：最后三个关键问题",
+        short: "确认",
+        note: "下一次讨论最重要的答案。",
+        accent: "var(--rose)",
+        questions: [
+          {
+            id: "q30",
+            type: "textarea",
+            title: "30. 进入深度参与阶段后，你最希望在这里做成的一件代表性事情是什么？"
+          },
+          {
+            id: "q31",
+            type: "textarea",
+            title: "31. 你对这段合作目前最大的顾虑是什么？"
+          },
+          {
+            id: "q32",
+            type: "textarea",
+            title: "32. 下一次见面时，你认为最需要聊清楚哪几个问题？"
+          }
+        ]
+      }
+    ];
+
+    const questions = modules.flatMap((module, moduleIndex) =>
+      module.questions.map((question) => ({ ...question, moduleIndex, module }))
+    );
+
+    let currentIndex = 0;
+    let answers = {};
+    let saveTimer;
+
+    const wizardMount = document.getElementById("wizardMount");
+    const progressText = document.getElementById("progressText");
+    const progressBar = document.getElementById("progressBar");
+    const saveStatus = document.getElementById("saveStatus");
+    const moduleTabs = document.getElementById("moduleTabs");
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function safeGet(key, fallback = "") {
+      try {
+        return localStorage.getItem(key) ?? fallback;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function safeSet(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch (error) {
+        // Static file previews can still work without local storage.
+      }
+    }
+
+    function safeRemove(key) {
+      try {
+        localStorage.removeItem(key);
+      } catch (error) {
+        // Ignore local storage restrictions.
+      }
+    }
+
+    function loadDraft() {
+      const raw = safeGet(ALIGNMENT_STORAGE_KEY);
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw);
+        answers = parsed.answers || {};
+        if (typeof parsed.currentIndex === "number") {
+          currentIndex = Math.min(Math.max(parsed.currentIndex, 0), questions.length);
+        }
+        if (parsed.updatedAt) {
+          saveStatus.textContent = `已恢复草稿：${new Date(parsed.updatedAt).toLocaleString("zh-CN", { hour12: false })}`;
+        }
+      } catch (error) {
+        saveStatus.textContent = "找到草稿但无法读取，可以重新填写。";
+      }
+    }
+
+    function saveDraft(reason = "已自动保存") {
+      safeSet(ALIGNMENT_STORAGE_KEY, JSON.stringify({
+        updatedAt: new Date().toISOString(),
+        currentIndex,
+        answers
+      }));
+      saveStatus.textContent = `${reason}：${new Date().toLocaleString("zh-CN", { hour12: false })}`;
+      updateProgress();
+    }
+
+    function scheduleSave(reason) {
+      clearTimeout(saveTimer);
+      saveStatus.textContent = "正在自动保存...";
+      saveTimer = setTimeout(() => saveDraft(reason), 220);
+    }
+
+    function questionAnswered(question) {
+      if (question.type === "radio") {
+        const selected = answers[question.id] || "";
+        const other = (answers[`${question.id}_other`] || "").trim();
+        return Boolean(selected && (!selected.includes("其他") || other));
+      }
+
+      if (question.type === "checkbox") {
+        const selected = answers[question.id] || [];
+        const other = (answers[`${question.id}_other`] || "").trim();
+        const needsOther = selected.some((value) => value.includes("其他"));
+        return Boolean(selected.length && (!needsOther || other));
+      }
+
+      if (question.type === "textarea") {
+        return Boolean((answers[question.id] || "").trim());
+      }
+
+      if (question.type === "matrix") {
+        return question.rows.every((_, index) => Boolean(answers[`${question.id}_${index}`]));
+      }
+
+      if (question.type === "ranking") {
+        const ranks = question.items.map((_, index) => answers[`${question.id}_${index}`]).filter(Boolean);
+        return ranks.length === question.items.length && new Set(ranks).size === ranks.length;
+      }
+
+      return false;
+    }
+
+    function answerCount() {
+      return questions.filter(questionAnswered).length;
+    }
+
+    function updateProgress() {
+      const answered = answerCount();
+      const total = questions.length;
+      const percent = Math.round((answered / total) * 100);
+      const displayIndex = Math.min(currentIndex + 1, total);
+      progressText.textContent = currentIndex >= total
+        ? `${answered} / ${total} 已回答，准备提交`
+        : `第 ${displayIndex} / ${total} 题 · ${answered} 题已回答`;
+      progressBar.style.setProperty("--progress", `${percent}%`);
+      moduleTabs.innerHTML = modules.map((module, index) => `
+        <span class="module-dot ${index === activeModuleIndex() ? "active" : ""}" style="--accent: ${module.accent}">${index + 1}. ${module.short}</span>
+      `).join("");
+    }
+
+    function activeModuleIndex() {
+      if (currentIndex >= questions.length) return modules.length - 1;
+      return questions[currentIndex].moduleIndex;
+    }
+
+    function setAnswer(name, value) {
+      answers[name] = value;
+      scheduleSave();
+      render();
+    }
+
+    function renderOption(question, option) {
+      const label = typeof option === "string" ? option : option.label;
+      const isOther = typeof option === "object" && option.other;
+      const values = question.type === "checkbox" ? answers[question.id] || [] : answers[question.id] || "";
+      const checked = question.type === "checkbox" ? values.includes(label) : values === label;
+      return `
+        <label class="option-card">
+          <input type="${question.type === "checkbox" ? "checkbox" : "radio"}" name="${question.id}" value="${escapeHtml(label)}" ${checked ? "checked" : ""}>
+          <span>${escapeHtml(label)}</span>
+          ${isOther ? `<input class="other-input" type="text" name="${question.id}_other" value="${escapeHtml(answers[`${question.id}_other`] || "")}" placeholder="请补充">` : ""}
+        </label>
+      `;
+    }
+
+    function renderQuestionBody(question) {
+      if (question.type === "radio" || question.type === "checkbox") {
+        return `<div class="option-list">${question.options.map((option) => renderOption(question, option)).join("")}</div>`;
+      }
+
+      if (question.type === "textarea") {
+        return `<textarea class="text-area" name="${question.id}" placeholder="请在这里填写你的想法">${escapeHtml(answers[question.id] || "")}</textarea>`;
+      }
+
+      if (question.type === "matrix") {
+        return `
+          <div class="matrix-table">
+            <div class="matrix-head">
+              <span>角色定位</span>
+              <span>1</span>
+              <span>2</span>
+              <span>3</span>
+              <span>4</span>
+              <span>5</span>
+            </div>
+            ${question.rows.map((row, rowIndex) => `
+              <div class="matrix-line">
+                <span>${escapeHtml(row)}</span>
+                ${[1, 2, 3, 4, 5].map((score) => `
+                  <label aria-label="${escapeHtml(row)} ${score} 分">
+                    <input type="radio" name="${question.id}_${rowIndex}" value="${score}" ${answers[`${question.id}_${rowIndex}`] === String(score) ? "checked" : ""}>
+                  </label>
+                `).join("")}
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      if (question.type === "ranking") {
+        return `
+          <div class="ranking-list">
+            ${question.items.map((item, itemIndex) => `
+              <label class="ranking-row">
+                <span>${escapeHtml(item)}</span>
+                <select class="rank-select" name="${question.id}_${itemIndex}">
+                  <option value="">排序</option>
+                  ${question.items.map((_, rankIndex) => {
+                    const rank = String(rankIndex + 1);
+                    return `<option value="${rank}" ${answers[`${question.id}_${itemIndex}`] === rank ? "selected" : ""}>第 ${rank}</option>`;
+                  }).join("")}
+                </select>
+              </label>
+            `).join("")}
+          </div>
+          <p class="helper">每个排序数字只能使用一次。</p>
+        `;
+      }
+
+      return "";
+    }
+
+    function typeLabel(question) {
+      return {
+        radio: "单选",
+        checkbox: "多选",
+        textarea: "开放题",
+        matrix: "矩阵评分 1-5",
+        ranking: "排序题"
+      }[question.type] || "Question";
+    }
+
+    function renderQuestion() {
+      const question = questions[currentIndex];
+      wizardMount.innerHTML = `
+        <section class="question-card" style="--accent: ${question.module.accent}">
+          <div class="question-head">
+            <div class="question-meta">
+              <span class="pill">${escapeHtml(question.module.title)}</span>
+              <span>${typeLabel(question)}</span>
+            </div>
+            <h2>${escapeHtml(question.title)}</h2>
+            <p class="helper">${escapeHtml(question.module.note)}</p>
+          </div>
+          <div class="question-body">
+            ${renderQuestionBody(question)}
+          </div>
+          <div class="wizard-actions">
+            <div class="action-group">
+              <button class="button" type="button" data-action="prev" ${currentIndex === 0 ? "disabled" : ""}>上一题</button>
+              <button class="button" type="button" data-action="save">保存草稿</button>
+            </div>
+            <div class="action-group">
+              <button class="button danger" type="button" data-action="clear">清空草稿</button>
+              <button class="button primary" type="button" data-action="next" ${questionAnswered(question) ? "" : "disabled"}>${currentIndex === questions.length - 1 ? "查看提交" : "下一题"}</button>
+            </div>
+          </div>
+        </section>
+      `;
+      bindQuestionEvents(question);
+    }
+
+    function renderFinal() {
+      const recipient = safeGet(RECIPIENT_STORAGE_KEY) || DEFAULT_REPORT_EMAIL;
+      wizardMount.innerHTML = `
+        <section class="final-card">
+          <div>
+            <div class="eyebrow">Submit</div>
+            <h2>提交前确认</h2>
+            <p>感谢你认真填写这份表单。这份表单不是形式流程，而是用于更准确地理解彼此对方向、角色、投入方式和长期合作结构的判断。点击下方按钮后，页面会生成完整报告并自动发送给 Yik；如果当前只是本地文件预览，页面会复制报告并打开邮件草稿作为备用。</p>
+          </div>
+          <div class="submit-grid">
+            <label class="field-label">
+              Report recipient email（Yik）
+              <input class="text-input" id="reportRecipient" type="email" value="${escapeHtml(recipient)}">
+            </label>
+            <button class="button primary" type="button" data-action="submit">生成报告并发送给 Yik</button>
+          </div>
+          <div class="wizard-actions">
+            <div class="action-group">
+              <button class="button" type="button" data-action="prev">返回上一题</button>
+              <button class="button" type="button" data-action="save">保存草稿</button>
+            </div>
+            <div class="action-group">
+              <button class="button danger" type="button" data-action="clear">清空草稿</button>
+            </div>
+          </div>
+          <div class="report-preview" id="reportPreview" hidden>
+            <button class="button" type="button" data-action="copy">复制完整报告</button>
+            <textarea class="report-output" id="reportOutput" readonly></textarea>
+          </div>
+        </section>
+      `;
+      document.getElementById("reportRecipient").addEventListener("input", (event) => {
+        safeSet(RECIPIENT_STORAGE_KEY, event.target.value.trim());
+      });
+    }
+
+    function bindQuestionEvents(question) {
+      wizardMount.querySelectorAll("input, textarea, select").forEach((field) => {
+        field.addEventListener("input", () => handleFieldChange(question, field));
+        field.addEventListener("change", () => handleFieldChange(question, field));
+      });
+    }
+
+    function handleFieldChange(question, field) {
+      if (field.type === "checkbox") {
+        const selected = answers[field.name] || [];
+        answers[field.name] = field.checked
+          ? [...new Set([...selected, field.value])]
+          : selected.filter((value) => value !== field.value);
+      } else {
+        answers[field.name] = field.value;
+      }
+
+      scheduleSave();
+
+      const shouldRenderQuestion = (question.type === "radio" && field.type === "radio")
+        || question.type === "matrix"
+        || question.type === "ranking";
+
+      if (shouldRenderQuestion) {
+        render();
+      } else {
+        updateProgress();
+        const nextButton = wizardMount.querySelector('[data-action="next"]');
+        if (nextButton) nextButton.disabled = !questionAnswered(question);
+      }
+    }
+
+    function nextQuestion() {
+      if (currentIndex < questions.length - 1) {
+        currentIndex += 1;
+      } else {
+        currentIndex = questions.length;
+      }
+      saveDraft();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function previousQuestion() {
+      if (currentIndex > 0) {
+        currentIndex -= 1;
+      }
+      saveDraft();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function clearDraft() {
+      if (!confirm("确定要清空当前问卷草稿吗？")) return;
+      answers = {};
+      currentIndex = 0;
+      safeRemove(ALIGNMENT_STORAGE_KEY);
+      saveStatus.textContent = "草稿已清空";
+      render();
+    }
+
+    function formatSimpleAnswer(question) {
+      const value = answers[question.id];
+      const other = (answers[`${question.id}_other`] || "").trim();
+      if (Array.isArray(value)) {
+        const selected = [...value];
+        if (other) selected.push(`其他补充：${other}`);
+        return selected.length ? selected.join("\n") : "未填写";
+      }
+      return [value, other ? `其他补充：${other}` : ""].filter(Boolean).join("\n") || "未填写";
+    }
+
+    function formatMatrixAnswer(question) {
+      return question.rows
+        .map((row, index) => `${row}: ${answers[`${question.id}_${index}`] || "未填写"} / 5`)
+        .join("\n");
+    }
+
+    function formatRankingAnswer(question) {
+      return question.items
+        .map((item, index) => ({ item, rank: answers[`${question.id}_${index}`] || "未填写" }))
+        .sort((a, b) => (Number(a.rank) || 99) - (Number(b.rank) || 99))
+        .map((entry) => `${entry.rank === "未填写" ? "未填写" : `第 ${entry.rank}`} - ${entry.item}`)
+        .join("\n");
+    }
+
+    function formatAnswer(question) {
+      if (question.type === "matrix") return formatMatrixAnswer(question);
+      if (question.type === "ranking") return formatRankingAnswer(question);
+      return formatSimpleAnswer(question);
+    }
+
+    function buildReport() {
+      const lines = [
+        "Rivex / Jim Role & Cooperation Confirmation Form",
+        `Submitted at: ${new Date().toLocaleString("zh-CN", { hour12: false })}`,
+        "",
+        "说明：这份报告由 Jim 问卷页面生成，答案来自本地自动保存表单。",
+        ""
+      ];
+
+      modules.forEach((module, index) => {
+        lines.push("==============================");
+        lines.push(`${index + 1}. ${module.title}`);
+        lines.push("==============================");
+        module.questions.forEach((question) => {
+          lines.push("");
+          lines.push(question.title);
+          lines.push(formatAnswer(question));
+        });
+        lines.push("");
+      });
+
+      return lines.join("\n");
+    }
+
+    async function copyReport(text) {
+      const output = document.getElementById("reportOutput");
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else if (output) {
+          output.value = text;
+          output.focus();
+          output.select();
+          document.execCommand("copy");
+        }
+        saveStatus.textContent = "完整报告已复制，可直接粘贴到邮件或聊天中。";
+      } catch (error) {
+        saveStatus.textContent = "报告已生成，复制可能需要手动选择文本。";
+      }
+    }
+
+    function openEmailDraft(recipient, report) {
+      const subject = "Rivex / Jim Role & Cooperation Confirmation Form";
+      const fullMailto = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(report)}`;
+      if (fullMailto.length < 22000) {
+        window.location.href = fullMailto;
+        return;
+      }
+
+      const shorterBody = [
+        "Hi Yik,",
+        "",
+        "Jim has completed the Rivex / Jim Role & Cooperation Confirmation Form.",
+        "The full report was generated and copied from the page. Please paste the copied report into this email before sending.",
+        "",
+        "Best,"
+      ].join("\n");
+      window.location.href = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shorterBody)}`;
+    }
+
+    async function sendReportEmail(recipient, report) {
+      if (window.location.protocol === "file:") {
+        throw new Error("本地文件预览无法调用 Netlify Function");
+      }
+
+      const response = await fetch(EMAIL_FUNCTION_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          recipient,
+          report,
+          submittedAt: new Date().toISOString(),
+          source: window.location.href
+        })
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || `Email function failed with ${response.status}`);
+      }
+
+      return payload;
+    }
+
+    async function submitReport() {
+      const recipientField = document.getElementById("reportRecipient");
+      const submitButton = wizardMount.querySelector('[data-action="submit"]');
+      const recipient = (recipientField?.value || DEFAULT_REPORT_EMAIL).trim();
+      if (!recipient) {
+        saveStatus.textContent = "请先填写 Yik 的收件邮箱。";
+        recipientField?.focus();
+        return;
+      }
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "正在生成并发送...";
+      }
+
+      safeSet(RECIPIENT_STORAGE_KEY, recipient);
+      saveDraft("提交前已保存");
+      const report = buildReport();
+      safeSet(LAST_REPORT_KEY, report);
+      const preview = document.getElementById("reportPreview");
+      const output = document.getElementById("reportOutput");
+      if (preview && output) {
+        output.value = report;
+        preview.hidden = false;
+      }
+
+      try {
+        saveStatus.textContent = "正在发送报告给 Yik...";
+        const result = await sendReportEmail(recipient, report);
+        saveStatus.textContent = `报告已发送到 ${result.recipient || recipient}。`;
+      } catch (error) {
+        await copyReport(report);
+        saveStatus.textContent = `自动发送未完成：${error.message}。完整报告已复制，并将打开邮件草稿作为备用。`;
+        openEmailDraft(recipient, report);
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = "生成报告并发送给 Yik";
+        }
+      }
+    }
+
+    function render() {
+      updateProgress();
+      if (currentIndex >= questions.length) {
+        renderFinal();
+      } else {
+        renderQuestion();
+      }
+    }
+
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+      const action = button.dataset.action;
+      if (action === "next") nextQuestion();
+      if (action === "prev") previousQuestion();
+      if (action === "save") saveDraft("已手动保存");
+      if (action === "clear") clearDraft();
+      if (action === "submit") submitReport();
+      if (action === "copy") copyReport(document.getElementById("reportOutput")?.value || buildReport());
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const recipientFromUrl = urlParams.get("to") || urlParams.get("email");
+    if (recipientFromUrl) {
+      safeSet(RECIPIENT_STORAGE_KEY, recipientFromUrl);
+    }
+
+    loadDraft();
+    updateProgress();
+    render();
+  </script>
+</body>
+</html>

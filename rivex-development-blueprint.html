@@ -1,0 +1,3037 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RIVEX 合夥人落地協作藍圖（Partner Execution Blueprint）</title>
+  <script src="rivex-auth.js"></script>
+  <script>window.RivexAuth && RivexAuth.requireRole("any");</script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f6f3ea;
+      --muted: #aeb8c7;
+      --quiet: #737f90;
+      --night: #05070b;
+      --surface: #0d1118;
+      --surface-2: #131924;
+      --panel: rgba(16, 20, 28, 0.84);
+      --line: rgba(255, 255, 255, 0.12);
+      --line-strong: rgba(255, 255, 255, 0.24);
+      --cyan: #36d6d8;
+      --gold: #e4b85c;
+      --violet: #8f7cff;
+      --green: #68d391;
+      --rose: #ff6b7a;
+      --orange: #ff9f43;
+      --blue: #4ea1ff;
+      --radius: 8px;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(5, 7, 11, 0.96), rgba(7, 9, 13, 0.985)),
+        linear-gradient(135deg, rgba(54, 214, 216, 0.08), transparent 30%, rgba(228, 184, 92, 0.07) 76%, transparent),
+        linear-gradient(90deg, rgba(143, 124, 255, 0.06), transparent 46%, rgba(104, 211, 145, 0.05)),
+        #05070b;
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+      background-size: 68px 68px;
+      mask-image: linear-gradient(to bottom, black, transparent 76%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      color: inherit;
+      font: inherit;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    p,
+    li,
+    span,
+    strong {
+      overflow-wrap: anywhere;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    p {
+      margin-top: 0;
+    }
+
+    .page-shell {
+      width: min(1440px, calc(100% - clamp(24px, 4vw, 48px)));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid var(--line);
+      background: rgba(5, 7, 11, 0.88);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar-inner {
+      min-height: 72px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(228, 184, 92, 0.46);
+      background: linear-gradient(135deg, rgba(228, 184, 92, 0.24), rgba(54, 214, 216, 0.12));
+      font-weight: 900;
+      color: var(--gold);
+      border-radius: 8px;
+      flex: 0 0 auto;
+    }
+
+    .brand-title {
+      display: block;
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+
+    .brand-subtitle {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav a,
+    .ghost-link {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      padding: 9px 11px;
+      border-radius: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+    }
+
+    .nav a:hover,
+    .ghost-link:hover {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--line);
+    }
+
+    .ghost-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button.ghost-link {
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: max-content;
+    }
+
+    .logout-link {
+      color: var(--gold);
+      border-color: rgba(228, 184, 92, 0.3);
+    }
+
+    .hero {
+      padding: 44px 0 34px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.04fr) minmax(320px, 0.72fr);
+      gap: 24px;
+      align-items: end;
+    }
+
+    .eyebrow {
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 52px;
+      line-height: 1.04;
+      letter-spacing: 0;
+      max-width: 980px;
+      margin-bottom: 18px;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 18px;
+      max-width: 900px;
+      margin-bottom: 0;
+    }
+
+    .hero-panel {
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.035)),
+        rgba(13, 17, 24, 0.78);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-panel h2 {
+      font-size: 17px;
+      margin-bottom: 10px;
+    }
+
+    .hero-panel p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .quick-stat {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.045);
+      padding: 12px;
+      min-height: 92px;
+    }
+
+    .quick-stat strong {
+      display: block;
+      color: var(--accent);
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+
+    .quick-stat span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .section {
+      padding: 58px 0;
+      border-top: 1px solid var(--line);
+      scroll-margin-top: 92px;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(280px, 0.48fr);
+      gap: 26px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    .section-kicker {
+      color: var(--gold);
+      font-weight: 900;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin-bottom: 8px;
+    }
+
+    .section h2 {
+      font-size: 38px;
+      line-height: 1.12;
+      margin-bottom: 10px;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .section-note {
+      border-left: 3px solid var(--cyan);
+      padding: 12px 0 12px 16px;
+      color: var(--muted);
+    }
+
+    .source-strip {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .source-tag,
+    .status-pill,
+    .owner-chip {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--muted);
+      padding: 6px 8px;
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .source-tag {
+      color: var(--quiet);
+    }
+
+    .status-pill {
+      color: var(--ink);
+      font-weight: 900;
+      border-color: color-mix(in srgb, var(--tone, var(--cyan)) 46%, transparent);
+      background: color-mix(in srgb, var(--tone, var(--cyan)) 14%, transparent);
+    }
+
+    .owner-chip {
+      color: var(--ink);
+      border-color: rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.065);
+    }
+
+    .jim-highlight,
+    .owner-chip-jim {
+      border: 1px solid color-mix(in srgb, var(--gold) 58%, transparent);
+      border-radius: 6px;
+      background:
+        linear-gradient(135deg, rgba(228, 184, 92, 0.22), rgba(255, 159, 67, 0.11));
+      color: var(--ink);
+      font-weight: 900;
+      padding: 2px 7px;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+
+    .owner-chip-empty {
+      color: var(--quiet);
+      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .owner-chip-sponsor {
+      color: var(--muted);
+      border-style: dashed;
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .mindmap-section {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 44%),
+        rgba(255, 255, 255, 0.01);
+    }
+
+    .mindmap-shell {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.42fr) minmax(0, 1fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .mindmap-root,
+    .mindmap-node,
+    .owner-roster-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025)),
+        rgba(13, 17, 24, 0.8);
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .mindmap-root {
+      position: sticky;
+      top: 92px;
+      align-self: start;
+      padding: 20px;
+      border-color: var(--line-strong);
+      box-shadow: var(--shadow);
+      background:
+        linear-gradient(135deg, rgba(54, 214, 216, 0.13), rgba(228, 184, 92, 0.08)),
+        rgba(13, 17, 24, 0.88);
+    }
+
+    .mindmap-root .eyebrow {
+      margin-bottom: 12px;
+    }
+
+    .mindmap-root h3 {
+      font-size: 26px;
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+
+    .mindmap-root p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+
+    .mindmap-root-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .mindmap-root-stat {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius);
+      background: rgba(0, 0, 0, 0.2);
+      padding: 12px;
+      min-height: 86px;
+    }
+
+    .mindmap-root-stat strong {
+      display: block;
+      color: var(--gold);
+      font-size: 21px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .mindmap-root-stat span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .mindmap-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .mindmap-group-heading {
+      grid-column: 1 / -1;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--quiet);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .mindmap-group-heading span:first-child {
+      color: var(--ink);
+    }
+
+    .mindmap-node {
+      border-color: color-mix(in srgb, var(--tone, var(--cyan)) 28%, rgba(255, 255, 255, 0.12));
+    }
+
+    .mindmap-toggle {
+      width: 100%;
+      border: 0;
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--tone, var(--cyan)) 16%, transparent), rgba(255, 255, 255, 0.02));
+      padding: 15px;
+      cursor: pointer;
+      text-align: left;
+      display: grid;
+      gap: 10px;
+    }
+
+    .mindmap-title-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .mindmap-title-row h3 {
+      font-size: 18px;
+      line-height: 1.25;
+      margin-bottom: 0;
+    }
+
+    .mindmap-caret {
+      width: 28px;
+      height: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      flex: 0 0 auto;
+      transition: transform 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .mindmap-node.is-open .mindmap-caret {
+      color: var(--ink);
+      border-color: color-mix(in srgb, var(--tone, var(--cyan)) 42%, transparent);
+      transform: rotate(45deg);
+    }
+
+    .mindmap-node-summary {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 0;
+    }
+
+    .mindmap-node-body {
+      display: none;
+      padding: 0 15px 15px;
+    }
+
+    .mindmap-node.is-open .mindmap-node-body {
+      display: grid;
+      gap: 12px;
+    }
+
+    .mindmap-owner-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mindmap-toggle .mindmap-owner-row {
+      margin-top: -2px;
+    }
+
+    .mindmap-target-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .mindmap-target-label {
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .mindmap-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .mindmap-detail {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.035);
+      padding: 11px;
+      min-height: 104px;
+    }
+
+    .mindmap-detail h4 {
+      color: var(--tone, var(--cyan));
+      font-size: 13px;
+      margin-bottom: 7px;
+    }
+
+    .mindmap-detail ul {
+      margin: 0;
+      padding-left: 16px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .mindmap-detail li {
+      margin: 4px 0;
+    }
+
+    .owner-roster-wrap {
+      margin-top: 18px;
+    }
+
+    .owner-roster-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+
+    .owner-roster-head h3 {
+      font-size: 22px;
+      margin-bottom: 0;
+    }
+
+    .owner-roster-head p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 0;
+      max-width: 680px;
+    }
+
+    .owner-roster {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .owner-roster-card {
+      padding: 13px;
+      min-height: 136px;
+    }
+
+    .owner-roster-card strong {
+      display: block;
+      color: var(--ink);
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    .owner-roster-card em {
+      display: block;
+      color: var(--quiet);
+      font-style: normal;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .owner-roster-card span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .roadmap-column {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .roadmap-column header {
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, transparent), rgba(255, 255, 255, 0.02));
+    }
+
+    .roadmap-column h3 {
+      color: var(--accent);
+      font-size: 17px;
+      margin-bottom: 6px;
+    }
+
+    .roadmap-column p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 0;
+    }
+
+    .roadmap-list {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .roadmap-item {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.18);
+      min-height: 112px;
+    }
+
+    .roadmap-item strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .roadmap-item span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .control-panel {
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(13, 17, 24, 0.78);
+      padding: 14px;
+      display: grid;
+      grid-template-columns: minmax(260px, 0.45fr) minmax(0, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .search-input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.055);
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(54, 214, 216, 0.1);
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-button {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 9px 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .filter-button.active,
+    .filter-button:hover {
+      color: var(--ink);
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+    }
+
+    .workstream-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .stream-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025)),
+        rgba(13, 17, 24, 0.8);
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .stream-card.hidden {
+      display: none;
+    }
+
+    .stream-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      gap: 8px;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, transparent), transparent);
+    }
+
+    .stream-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--quiet);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .stream-meta span:first-child {
+      color: var(--accent);
+    }
+
+    .stream-header h3 {
+      font-size: 20px;
+      line-height: 1.25;
+      margin-bottom: 0;
+    }
+
+    .stream-header p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 0;
+    }
+
+    .stream-live-summary {
+      padding: 14px 14px 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stream-live-item {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.035);
+      padding: 11px;
+      min-height: 94px;
+    }
+
+    .stream-live-item h4 {
+      color: var(--accent);
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .stream-live-item p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      margin-bottom: 0;
+    }
+
+    .delivery-grid {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stream-details {
+      margin: 12px 14px 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.026);
+    }
+
+    .stream-details summary {
+      cursor: pointer;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+      padding: 10px 12px;
+      list-style: none;
+    }
+
+    .stream-details summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .stream-details summary::after {
+      content: " +";
+      color: var(--quiet);
+    }
+
+    .stream-details[open] summary::after {
+      content: " -";
+    }
+
+    .stream-details .delivery-grid {
+      padding-top: 0;
+    }
+
+    .delivery-block {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.035);
+      min-height: 164px;
+    }
+
+    .delivery-block h4 {
+      color: var(--accent);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .delivery-block ul {
+      margin: 0;
+      padding-left: 17px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .delivery-block li {
+      margin: 5px 0;
+    }
+
+    .team-strip {
+      padding: 0 14px 14px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--muted);
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+
+    .team-layout {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .team-index {
+      position: sticky;
+      top: 92px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(13, 17, 24, 0.82);
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .team-index a {
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--muted);
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .team-index a:hover {
+      color: var(--ink);
+      border-color: var(--line);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .role-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 16px;
+      min-height: 190px;
+    }
+
+    .role-card h3 {
+      color: var(--accent);
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    .role-card p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .role-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .role-card li {
+      margin: 5px 0;
+    }
+
+    .coverage-gap {
+      border: 1px solid color-mix(in srgb, var(--orange) 46%, transparent);
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--orange) 16%, rgba(255, 255, 255, 0.02));
+      color: var(--ink);
+      font-weight: 900;
+      padding: 2px 6px;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+
+    .dependency-map {
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(13, 17, 24, 0.78);
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .dependency-row {
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .dependency-label {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--accent);
+      display: grid;
+      align-content: center;
+      padding: 12px;
+      font-weight: 900;
+    }
+
+    .dependency-lane {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .dependency-step {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.035);
+      padding: 12px;
+      min-height: 104px;
+    }
+
+    .dependency-step strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .dependency-step span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .milestone-strip {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(132px, 1fr));
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+      margin-bottom: 16px;
+    }
+
+    .milestone-strip-item {
+      border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--line));
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent) 12%, transparent), rgba(255, 255, 255, 0.025));
+      padding: 10px;
+      min-height: 92px;
+      min-width: 0;
+    }
+
+    .milestone-strip-item span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--accent) 18%, rgba(0, 0, 0, 0.2));
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 7px;
+      margin-bottom: 8px;
+    }
+
+    .milestone-strip-item strong {
+      display: block;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+
+    .milestone-strip-item em {
+      display: block;
+      color: var(--quiet);
+      font-style: normal;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .milestone-timeline {
+      position: relative;
+      display: grid;
+      gap: 10px;
+    }
+
+    .milestone-timeline::before {
+      content: "";
+      position: absolute;
+      left: 27px;
+      top: 18px;
+      bottom: 18px;
+      width: 1px;
+      background: linear-gradient(180deg, var(--green), var(--cyan), var(--gold), var(--orange), var(--rose));
+      opacity: 0.54;
+    }
+
+    .milestone-step {
+      position: relative;
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr);
+      gap: 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .milestone-marker {
+      position: relative;
+      z-index: 1;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--accent) 60%, var(--line));
+      background: color-mix(in srgb, var(--accent) 14%, #101827);
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .milestone-main {
+      min-width: 0;
+    }
+
+    .milestone-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .milestone-topline h3 {
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1.25;
+      margin: 0;
+    }
+
+    .milestone-status {
+      display: inline-flex;
+      flex: 0 0 auto;
+      border: 1px solid color-mix(in srgb, var(--accent) 46%, transparent);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.02));
+      color: var(--ink);
+      font-size: 11px;
+      line-height: 1.25;
+      padding: 5px 8px;
+      white-space: nowrap;
+    }
+
+    .milestone-one-line {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      margin: 8px 0 10px;
+    }
+
+    .milestone-meta {
+      display: grid;
+      grid-template-columns: minmax(0, 0.7fr) minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .milestone-meta span {
+      border: 1px solid rgba(255, 255, 255, 0.095);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      padding: 8px 9px;
+      min-width: 0;
+    }
+
+    .milestone-meta b {
+      color: var(--quiet);
+      display: block;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+    }
+
+    .milestone-module-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0 0;
+    }
+
+    .milestone-module-strip span {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+      padding: 5px 7px;
+    }
+
+    .milestone-detail {
+      border-top: 1px solid rgba(255, 255, 255, 0.09);
+      margin-top: 10px;
+      padding-top: 8px;
+    }
+
+    .milestone-detail summary {
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+      list-style: none;
+      width: fit-content;
+    }
+
+    .milestone-detail summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .milestone-detail summary::after {
+      content: " +";
+      color: var(--quiet);
+    }
+
+    .milestone-detail[open] summary::after {
+      content: " -";
+    }
+
+    .milestone-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .milestone-mini {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.14);
+      padding: 8px;
+      min-height: 74px;
+    }
+
+    .milestone-mini b {
+      color: var(--quiet);
+      display: block;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .milestone-mini span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .governance-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .governance-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 16px;
+      min-height: 178px;
+    }
+
+    .governance-card h3 {
+      color: var(--accent);
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    .governance-card p,
+    .governance-card li {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .governance-card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 28px 0 42px;
+      color: var(--quiet);
+      font-size: 13px;
+    }
+
+    .footer .page-shell {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 1180px) {
+      h1 {
+        font-size: 44px;
+      }
+
+      .hero,
+      .section-head,
+      .control-panel,
+      .mindmap-shell,
+      .team-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .mindmap-root {
+        position: static;
+      }
+
+      .team-index {
+        position: static;
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+      }
+
+      .team-index a {
+        flex: 0 0 auto;
+        white-space: nowrap;
+      }
+
+      .roadmap-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .dependency-lane,
+      .owner-roster,
+      .governance-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 860px) {
+      .topbar-inner {
+        grid-template-columns: 1fr;
+        padding: 10px 0;
+        gap: 10px;
+      }
+
+      .nav {
+        justify-content: flex-start;
+      }
+
+      .topbar-inner > .ghost-link {
+        display: none;
+      }
+
+      .hero {
+        padding-top: 28px;
+      }
+
+      h1 {
+        font-size: 36px;
+      }
+
+      .lead {
+        font-size: 16px;
+      }
+
+      .workstream-grid,
+      .role-grid,
+      .delivery-grid,
+      .mindmap-grid,
+      .mindmap-detail-grid,
+      .stream-live-summary,
+      .owner-roster,
+      .roadmap-grid,
+      .governance-grid,
+      .dependency-row,
+      .dependency-lane {
+        grid-template-columns: 1fr;
+      }
+
+      .milestone-strip {
+        grid-template-columns: repeat(6, minmax(124px, 1fr));
+      }
+
+      .milestone-timeline::before {
+        left: 21px;
+      }
+
+      .milestone-step {
+        grid-template-columns: 42px minmax(0, 1fr);
+        gap: 9px;
+        padding: 10px;
+      }
+
+      .milestone-marker {
+        width: 42px;
+        height: 42px;
+        font-size: 13px;
+      }
+
+      .milestone-topline {
+        display: grid;
+        justify-content: stretch;
+      }
+
+      .milestone-status {
+        width: fit-content;
+      }
+
+      .milestone-meta,
+      .milestone-detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section {
+        padding: 48px 0;
+        scroll-margin-top: 126px;
+      }
+    }
+
+    @media (min-width: 521px) and (max-width: 860px) {
+      .quick-grid,
+      .role-grid,
+      .delivery-grid,
+      .governance-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 520px) {
+      .page-shell {
+        width: min(100% - 18px, 1440px);
+      }
+
+      body::before {
+        background-size: 44px 44px;
+      }
+
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+      }
+
+      .brand-title {
+        font-size: 15px;
+      }
+
+      .brand-subtitle {
+        font-size: 11px;
+      }
+
+      .nav a {
+        padding: 8px 9px;
+        font-size: 12px;
+      }
+
+      h1 {
+        font-size: 30px;
+        line-height: 1.1;
+      }
+
+      .section h2 {
+        font-size: 27px;
+      }
+
+      .hero-panel,
+      .control-panel,
+      .mindmap-root,
+      .dependency-map {
+        padding: 12px;
+      }
+
+      .quick-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stream-header,
+      .mindmap-toggle,
+      .mindmap-node-body,
+      .delivery-grid,
+      .role-card,
+      .governance-card,
+      .roadmap-column header,
+      .roadmap-list {
+        padding: 12px;
+      }
+
+      .delivery-block,
+      .mindmap-detail,
+      .roadmap-item,
+      .dependency-step {
+        min-height: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner page-shell">
+      <a class="brand" href="rivex-group-operating-map.html" aria-label="Back to RIVEX whitepaper">
+        <span class="brand-mark">R</span>
+        <span>
+          <span class="brand-title">RIVEX 集團（RIVEX Group）</span>
+          <span class="brand-subtitle">合夥人落地協作藍圖</span>
+        </span>
+      </a>
+      <nav class="nav" aria-label="藍圖區塊導覽">
+        <a href="#map">總覽</a>
+        <a href="#live-map">實時腦圖</a>
+        <a href="#workstreams">共建模組</a>
+        <a href="#teams">能力配置</a>
+        <a href="#dependencies">依賴關係</a>
+        <a href="#milestones">里程碑</a>
+        <a href="#governance">治理</a>
+        <a href="rivex-department-task-system.html">任務系統</a>
+      </nav>
+      <div class="top-actions" aria-label="頁面操作">
+        <a class="ghost-link" href="rivex-group-operating-map.html">返回白皮書</a>
+        <a class="ghost-link" href="index.html">返回入口（Choose Page）</a>
+        <button class="ghost-link logout-link" type="button" data-logout>登出（Log out）</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero page-shell" id="map">
+      <div>
+        <div class="eyebrow">合夥人落地協作藍圖（Partner Execution Blueprint）</div>
+        <h1>RIVEX 集團（RIVEX Group）從白皮書到可交付營運體系的共建藍圖。</h1>
+        <p class="lead">
+          這一頁用來讓合夥人快速理解 RIVEX 的落地路徑：哪些能力已經有人執行，哪些仍只是規劃或等待合作方，以及每個模組進入下一階段前要先通過什麼閘口。
+        </p>
+      </div>
+      <aside class="hero-panel">
+        <h2>給合夥人的閱讀方式</h2>
+        <p>先看實時腦圖和里程碑，確認哪些是正在交付的事；再看共建模組，判斷哪些能力需要外部節點、資金方、鑑定方或運營方共同補齊。</p>
+        <div class="quick-grid">
+          <div class="quick-stat" style="--accent: var(--cyan)">
+            <strong>12</strong>
+            <span>功能模組，覆蓋 App、AI、數據、鑑定、借貸、交易、護照與線下營運。</span>
+          </div>
+          <div class="quick-stat" style="--accent: var(--gold)">
+            <strong>8</strong>
+            <span>已有明確 DRI 或正在執行的核心節點。</span>
+          </div>
+          <div class="quick-stat" style="--accent: var(--violet)">
+            <strong>4</strong>
+            <span>待指派、待決策或待合作方落地的能力節點。</span>
+          </div>
+          <div class="quick-stat" style="--accent: var(--green)">
+            <strong>6</strong>
+            <span>上線閘口：MVP、體驗、數據、鑑定、借貸風控、市場規模化。</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section mindmap-section" id="live-map">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">功能模組腦圖（Product Module Execution Map）</div>
+            <h2>按照 RIVEX 要做的所有產品、數據、鑑定、金融與營運模組展開。</h2>
+            <p>這裡只把 OKR、內部任務或已確認正在推進的部分標成 DRI；白皮書裡有、但目前沒有任務證據的能力，統一標為待指派或待啟動。</p>
+            <div class="source-strip">
+              <span class="source-tag">來源：OKR 追蹤表（OKR Tracker）/ 內部員工資料庫（Internal Portal）</span>
+              <span class="source-tag">更新：2026-04-23</span>
+              <span class="source-tag">私有連結已隱藏</span>
+            </div>
+          </div>
+          <p class="section-note">閱讀口徑：直接負責人（DRI）= 已有人在執行；待指派 = 目前只屬藍圖或前置依賴，不能當成已有人負責。</p>
+        </div>
+
+        <div class="mindmap-shell">
+          <aside class="mindmap-root">
+            <div class="eyebrow">RIVEX 產品模組圖（Product Module Map）</div>
+            <h3>從資產識別到金融化閉環的完整功能版圖。</h3>
+            <p>中心是高價值實物資產操作系統。外圍節點分成兩類：已有直接負責人（DRI）的執行節點，以及尚未指定負責人（owner）的待建能力。</p>
+            <div class="mindmap-root-stats">
+              <div class="mindmap-root-stat">
+                <strong>12</strong>
+                <span>功能模組，覆蓋產品入口、數據底座、鑑定、金融、交易與營運。</span>
+              </div>
+              <div class="mindmap-root-stat">
+                <strong>8</strong>
+                <span>已有明確直接負責人（DRI），或已在 OKR / 倉庫中出現的執行節點。</span>
+              </div>
+              <div class="mindmap-root-stat">
+                <strong>4</strong>
+                <span>待指派、待合作或待前置標準完成的能力節點。</span>
+              </div>
+              <div class="mindmap-root-stat">
+                <strong>2</strong>
+                <span>已建核心品類數據庫：腕錶與紅酒，成交數據仍在補強。</span>
+              </div>
+            </div>
+          </aside>
+
+          <div class="mindmap-grid" id="mindMapGrid" aria-label="實時執行腦圖（Live execution mind map）"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="operating-model">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">營運模型（Operating Model）</div>
+            <h2>四個落地維度：標準定義、系統建設、合作網絡、驗收標準。</h2>
+            <p>RIVEX 的價值不只是做一套軟件，而是把高價值實物資產的數據標準、鑑定能力、托管控制、金融合約與交易網絡連成一個可運營體系。因此，合夥人需要看到的不只是功能清單，而是每一層如何形成可交付、可審計、可商業化的能力。</p>
+          </div>
+          <p class="section-note">這是給潛在合夥人、節點公司、資金方、托管方、保險方、拍賣行、技術合作方與管理層共同看的合作地圖。</p>
+        </div>
+
+        <div class="roadmap-grid">
+          <article class="roadmap-column" style="--accent: var(--cyan)">
+            <header>
+              <h3>標準定義（Define）</h3>
+              <p>先把合作前必須共識的標準、角色、邊界、合約和數據口徑定清楚。</p>
+            </header>
+            <div class="roadmap-list">
+              <div class="roadmap-item"><strong>產品定義</strong><span>拍攝建檔、專家解讀、資產管理、行動執行，以及放盤可見性、追蹤清單和護照使用場景。</span></div>
+              <div class="roadmap-item"><strong>數據定義</strong><span>資產資料結構（asset schema）、品類分類法（taxonomy）、估值口徑、流動性指標與 RIVEX 風險評分（RRS）欄位。</span></div>
+              <div class="roadmap-item"><strong>合約定義</strong><span>托管、授信、委託出售、預售預付款、所有權轉讓、節點分成。</span></div>
+            </div>
+          </article>
+
+          <article class="roadmap-column" style="--accent: var(--gold)">
+            <header>
+              <h3>系統建設（Build）</h3>
+              <p>把白皮書能力轉成可使用、可接入、可運營的產品、工具、應用程式介面（API）與合約。</p>
+            </header>
+            <div class="roadmap-list">
+              <div class="roadmap-item"><strong>用戶產品</strong><span>App、網頁控制台（Web console）、資產卡、追蹤、放盤、護照視圖與金融入口。</span></div>
+              <div class="roadmap-item"><strong>核心引擎</strong><span>資產管家人工智能（Asset Steward AI）、估值模型、RIVEX 風險評分（RRS）、智能代理編排器與金融引擎。</span></div>
+              <div class="roadmap-item"><strong>協議與後台</strong><span>護照鑄造 / 追加 / 重鑄、托管庫運營、節點門戶與合規審批台。</span></div>
+            </div>
+          </article>
+
+          <article class="roadmap-column" style="--accent: var(--violet)">
+            <header>
+              <h3>網絡設立（Establish）</h3>
+              <p>建立節點、合作方、流程、治理機制和可持續的責任分工。</p>
+            </header>
+            <div class="roadmap-list">
+              <div class="roadmap-item"><strong>組織能力</strong><span>產品、AI、後端、硬件、風控、法務、托管庫、商務拓展、測試與資安。</span></div>
+              <div class="roadmap-item"><strong>合作網絡</strong><span>鑑定師、拍賣行、托管庫、保險、資金方、護照節點與商家。</span></div>
+              <div class="roadmap-item"><strong>操作流程</strong><span>入庫、掃描、品相認證、交易前認證、清算、重鑄、節點審計。</span></div>
+            </div>
+          </article>
+
+          <article class="roadmap-column" style="--accent: var(--green)">
+            <header>
+              <h3>驗收完成（Validate）</h3>
+              <p>用清晰的商業、風控和系統驗收標準判斷是否能進入下一階段。</p>
+            </header>
+            <div class="roadmap-list">
+              <div class="roadmap-item"><strong>功能驗收</strong><span>用戶可建檔、了解、管理、追蹤、放盤、鑑定、托管與查看護照。</span></div>
+              <div class="roadmap-item"><strong>風控驗收</strong><span>估值、流動性、貸款成數（LTV）、保險、托管庫、了解你的客戶（KYC）與交易前認證可被系統讀取。</span></div>
+              <div class="roadmap-item"><strong>商業驗收</strong><span>可收取鑑定費、護照費、交易費、金融收入、節點分成與應用程式介面（API）費。</span></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="workstreams">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">共建模組（Partner Workstreams）</div>
+            <h2>RIVEX 落地所需的核心共建模組。</h2>
+            <p>用上方搜尋或分類按鈕篩選。每一塊都對應白皮書裡的一個產品、協議、運營、金融或合作方能力。</p>
+          </div>
+          <p class="section-note">這裡可以用來判斷每一類合夥人能參與哪個環節、需要承擔什麼責任，以及 RIVEX 如何驗收合作成果。</p>
+        </div>
+
+        <div class="control-panel">
+          <input class="search-input" id="searchInput" type="search" placeholder="搜尋：護照、黑卡、智能代理、托管庫、風險評分（RRS）、放盤、法務..." aria-label="搜尋共建模組">
+          <div class="filter-row" id="filterRow" aria-label="篩選共建模組">
+            <button class="filter-button active" style="--accent: var(--cyan)" type="button" data-filter="all">全部</button>
+            <button class="filter-button" style="--accent: var(--cyan)" type="button" data-filter="Digital">數字化</button>
+            <button class="filter-button" style="--accent: var(--gold)" type="button" data-filter="Standard">標準化</button>
+            <button class="filter-button" style="--accent: var(--violet)" type="button" data-filter="System">系統化</button>
+            <button class="filter-button" style="--accent: var(--green)" type="button" data-filter="Finance">金融化</button>
+            <button class="filter-button" style="--accent: var(--rose)" type="button" data-filter="Trust">安全與生態</button>
+          </div>
+        </div>
+
+        <div class="workstream-grid" id="workstreamGrid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="teams">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">能力配置（Capability Coverage）</div>
+            <h2>哪些能力已有人在做，哪些仍需補直接負責人（DRI）。</h2>
+            <p>這裡不是把所有職能都分配給現有人員，而是區分：已有人執行、內部可支援、以及需要外部合作方或待指派負責人（owner）的能力缺口。</p>
+          </div>
+          <p class="section-note">口徑：只有 OKR / 倉庫 / 已知任務中出現的才寫直接負責人（DRI）；白皮書中的未啟動能力只標「待指派」或「外部合作方待接入」。</p>
+        </div>
+
+        <div class="team-layout">
+          <aside class="team-index" aria-label="能力配置快捷導覽">
+            <a href="#role-product">產品與策略</a>
+            <a href="#role-engineering">工程與平台</a>
+            <a href="#role-ai">人工智能（AI）與數據</a>
+            <a href="#role-asset">資產專家</a>
+            <a href="#role-finance">金融與風控</a>
+            <a href="#role-structured-credit">結構化信用</a>
+            <a href="#role-legal">法務與合規</a>
+            <a href="#role-ops">托管庫與運營</a>
+            <a href="#role-growth">商務與增長</a>
+          </aside>
+
+          <div class="role-grid">
+            <article class="role-card" id="role-product" style="--accent: var(--cyan)">
+              <h3>產品與策略（Product & Strategy）</h3>
+              <p>把白皮書變成產品需求文件（PRD）、用戶流程、優先級與驗收標準。</p>
+              <ul>
+                <li>主要負責人（DRI）：Ruilin Zhao</li>
+                <li>支援：Yik Huang（方向 / 資源）、Jason Li（iOS / 增長協同）、Zhenxin Huang（技術可行性）</li>
+                <li>當前重點：產品需求文件（PRD）、優先級、跨端驗收節奏、借貸與金融模組口徑</li>
+                <li><span class="coverage-gap">金融、護照、市場交易子模組直接負責人（DRI）仍待拆分</span></li>
+                <li><span class="coverage-gap">需要補：用戶研究、信息架構、演示版本（demo）驗收清單</span></li>
+              </ul>
+            </article>
+            <article class="role-card" style="--accent: var(--cyan)">
+              <h3>體驗與界面設計（UX & UI Design）</h3>
+              <p>設計 App、管理台、護照視圖、金融申請、放盤流程與節點後台。</p>
+              <ul>
+                <li>明確 DRI：Jason Li、Zhou Junfei、Zhenxin Huang</li>
+                <li>當前重點：移動端、Web UI、圖表、國際化</li>
+                <li><span class="coverage-gap">待補：完整可用性測試與演示（demo）驗收清單</span></li>
+              </ul>
+            </article>
+            <article class="role-card" id="role-engineering" style="--accent: var(--gold)">
+              <h3>工程與平台（Engineering & Platform）</h3>
+              <p>建設行動 App、網頁端（Web）、應用程式介面（API）、後台、資料庫、支付、通知與權限系統。</p>
+              <ul>
+                <li>主要負責人（DRI）：Ruilin Zhao</li>
+                <li>執行支援：Zhenxin Huang、Guo Jintao、Long Jikang、Zhou Junfei</li>
+                <li>已覆蓋：行動 App、網頁端（Web）、應用程式介面（API）、資料庫、管理界面</li>
+                <li><span class="coverage-gap">待補：RBAC、審計日誌、自動化測試與發布管理</span></li>
+              </ul>
+            </article>
+            <article class="role-card" id="role-ai" style="--accent: var(--violet)">
+              <h3>人工智能與數據（AI & Data）</h3>
+              <p>建立資產管家大模型、專家模型、估值模型、流動性監控與智能代理編排。</p>
+              <ul>
+                <li>人工智能對話（AI chat）/ 後端直接負責人（DRI）：Zhenxin Huang、Guo Jintao</li>
+                <li>資料管線（pipeline）/ 軟件研發支援：Ruilin Zhao、Long Jikang</li>
+                <li>借貸風控 / 貸款成數（LTV）：Ruilin Zhao</li>
+              </ul>
+            </article>
+            <article class="role-card" id="role-asset" style="--accent: var(--gold)">
+              <h3>資產專家（Asset Experts）</h3>
+              <p>提供腕錶、紅酒、珠寶、包袋、藝術品等資產的真實專家知識與覆核。</p>
+              <ul>
+                <li>內部收藏與業務資料支援：Clifton Yang</li>
+                <li><span class="coverage-gap">外部腕錶 / 紅酒 / 珠寶 / 包袋專家待接入</span></li>
+                <li><span class="coverage-gap">品相標準與人工覆核隊列直接負責人（DRI）待指派</span></li>
+              </ul>
+            </article>
+            <article class="role-card" style="--accent: var(--orange)">
+              <h3>硬件與計算機視覺（Hardware & Computer Vision）</h3>
+              <p>建立 Origin 掃描硬件、圖像處理、3D 建模與實物指紋。</p>
+              <ul>
+                <li>線上圖像識別已有支援</li>
+                <li><span class="coverage-gap">Origin 硬件 / 3D / 實驗室直接負責人（DRI）待指派</span></li>
+                <li><span class="coverage-gap">設備校準、樣本庫、假貨庫尚未啟動</span></li>
+              </ul>
+            </article>
+            <article class="role-card" style="--accent: var(--blue)">
+              <h3>區塊鏈與協議（Blockchain & Protocol）</h3>
+              <p>建設護照鑄造、追加、重鑄、鏈上查驗、所有權變更與智能合約分潤。</p>
+              <ul>
+                <li><span class="coverage-gap">目前狀態：白皮書能力，尚未正式啟動</span></li>
+                <li><span class="coverage-gap">協議 / 合約 / 錢包直接負責人（DRI）待指派</span></li>
+                <li><span class="jim-highlight">建議承接方向（target）：Jim Kok 可共同定義資產標準、鏈上護照、系統化協議、交易分潤帳本與資產金融路徑；RWA / ABS 留作後續可選項</span></li>
+                <li>前置：鑑定標準、資產 ID、元資料（metadata）和法律邊界</li>
+              </ul>
+            </article>
+            <article class="role-card" id="role-finance" style="--accent: var(--green)">
+              <h3>金融與風控（Finance & Risk）</h3>
+              <p>設計授信額度、貸款成數（LTV）、黑卡、利息觸發、預售預付款、清算與風控政策。</p>
+              <ul>
+                <li>資金方與借貸系統方向已啟動</li>
+                <li>借貸風控 / 貸款成數（LTV）：Ruilin Zhao</li>
+                <li><span class="jim-highlight">建議承接方向（target）：Jim Kok 共同定義金融化路徑、結構化信用（structured credit）、機構溝通節奏、第三方財務公司過渡，以及標準化資料如何進入金融產品</span></li>
+                <li><span class="coverage-gap">合規直接負責人（DRI）待指派</span></li>
+                <li><span class="coverage-gap">貸款成數（LTV）、授信、違約回收、清算政策尚未定稿</span></li>
+              </ul>
+            </article>
+            <article class="role-card" id="role-structured-credit" style="--accent: var(--gold)" data-jim-only>
+              <h3>鏈上資產基礎設施與結構化信用（On-chain Asset Infrastructure）</h3>
+              <p>把手錶資產標準化、Origin / Passport、系統化工作流、鏈上交易與分潤帳本、金融化、資產池、第三方財務公司過渡、機構融資與 RWA / ABS 可能性連成一條可融資垂直能力（vertical）。</p>
+              <ul>
+                <li><span class="jim-highlight">建議承接方向（target）：Jim</span></li>
+                <li>適配方向：策略長 / 合夥人（CSO / Partner），鏈上資產基礎設施、系統化協議與結構化信用</li>
+                <li>職責重點：資產標準、Origin / Passport、系統化工作流、交易與分潤帳本、節點經濟、金融化 KPI、機構溝通節奏、第三方財務公司過渡、授信框架、資產池打包、資金方敘事、退出與清算規則</li>
+                <li><span class="coverage-gap">正式 title、授權邊界與上任節奏待確認</span></li>
+              </ul>
+            </article>
+            <article class="role-card" id="role-legal" style="--accent: var(--rose)">
+              <h3>法務與合規（Legal & Compliance）</h3>
+              <p>建立了解你的客戶（KYC）/ 反洗錢（AML）、托管合約、借貸合約、交易合約、節點合約與司法轄區策略。</p>
+              <ul>
+                <li><span class="coverage-gap">合規執行直接負責人（DRI）待指派</span></li>
+                <li><span class="coverage-gap">外部律所 / 合規顧問待接入</span></li>
+                <li>借貸、交易、托管、數據使用需上線前審查</li>
+              </ul>
+            </article>
+            <article class="role-card" id="role-ops" style="--accent: var(--violet)">
+              <h3>托管庫與運營（Vault & Operations）</h3>
+              <p>建立實物入庫、出庫、鎖定、保險、盤點、異常處理與 VIP 服務流程。</p>
+              <ul>
+                <li><span class="coverage-gap">托管庫 / 保險 / 物流直接負責人（DRI）待指派</span></li>
+                <li><span class="coverage-gap">合作托管庫與保險方案未定</span></li>
+                <li>需等線下鑑定與金融風控標準更清楚</li>
+              </ul>
+            </article>
+            <article class="role-card" style="--accent: var(--orange)">
+              <h3>資安與平台運維（Security & SRE）</h3>
+              <p>保障平台、合約、密鑰、資料、模型、節點與合作方接入安全。</p>
+              <ul>
+                <li>工程基礎由現有技術團隊支援</li>
+                <li><span class="coverage-gap">專職資安 / 開發維運（DevOps）直接負責人（DRI）待指派</span></li>
+                <li>審計日誌、備份、事故響應需列入最低要求</li>
+              </ul>
+            </article>
+            <article class="role-card" id="role-growth" style="--accent: var(--green)">
+              <h3>運營推廣 / AIGC 增長 / 客戶成功</h3>
+              <p>用人工智能生成內容（AIGC）快速生產內容，推進社交媒體、品牌素材、上線推廣與影響力建設，同時為後續 VIP 和合作方導入做鋪墊。</p>
+              <ul>
+                <li>運營推廣直接負責人（DRI）：Jason Li / Neo Huang</li>
+                <li>人工智能生成內容（AIGC）內容引擎：社交媒體短內容、產品亮點、案例素材、品牌敘事快速迭代</li>
+                <li>當前目標：提升 RIVEX 影響力，支撐資金方、合作方與早期用戶溝通</li>
+                <li><span class="coverage-gap">VIP 運營與合作方成功仍需後續拆分直接負責人（DRI）</span></li>
+                <li><span class="coverage-gap">鑑定、資金、交易、托管、保險需拆成獨立合作管道</span></li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="dependencies">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">依賴關係圖（Dependency Map）</div>
+            <h2>共建依賴關係：哪些能力必須先到位。</h2>
+            <p>RIVEX 的金融化不能跳過標準化，市場交易不能跳過護照，護照也不能跳過資產資料與品相標準。</p>
+          </div>
+          <p class="section-note">這張圖幫助合夥人判斷落地順序，避免只看到前端展示，卻忽略風控、合約、托管庫、認證與數據底座。</p>
+        </div>
+
+        <div class="dependency-map">
+          <div class="dependency-row" style="--accent: var(--cyan)">
+            <div class="dependency-label">用戶層（User Layer）</div>
+            <div class="dependency-lane">
+              <div class="dependency-step"><strong>資產卡（Asset Card）</strong><span>照片、證書、配件、購買紀錄、用戶問題。</span></div>
+              <div class="dependency-step"><strong>專家解讀（Know It）</strong><span>專家大模型與估值解讀。</span></div>
+              <div class="dependency-step"><strong>資產追蹤（Track It）</strong><span>買方需求池與放盤提醒。</span></div>
+              <div class="dependency-step"><strong>資產管理（Manage It）</strong><span>收藏庫、保險、托管庫與意向管理。</span></div>
+              <div class="dependency-step"><strong>行動執行（Action）</strong><span>鑑定、托管、放盤、借貸、交易。</span></div>
+            </div>
+          </div>
+          <div class="dependency-row" style="--accent: var(--gold)">
+            <div class="dependency-label">標準層（Standard Layer）</div>
+            <div class="dependency-lane">
+              <div class="dependency-step"><strong>資產結構（Asset Schema）</strong><span>品類、欄位、元資料與資料品質。</span></div>
+              <div class="dependency-step"><strong>Origin 掃描（Origin Scan）</strong><span>影像、3D、材質、序列號。</span></div>
+              <div class="dependency-step"><strong>專家覆核（Expert Review）</strong><span>人機覆核與例外處理。</span></div>
+              <div class="dependency-step"><strong>RIVEX 風險評分（RRS）</strong><span>真偽、品相、流動性、風險。</span></div>
+              <div class="dependency-step"><strong>數字孿生護照</strong><span>上鏈身份與可追溯紀錄。</span></div>
+            </div>
+          </div>
+          <div class="dependency-row" style="--accent: var(--violet)">
+            <div class="dependency-label">執行層（Execution Layer）</div>
+            <div class="dependency-lane">
+              <div class="dependency-step"><strong>智能代理網絡</strong><span>用戶、市場、借貸、托管庫與合規代理。</span></div>
+              <div class="dependency-step"><strong>托管庫系統</strong><span>托管、鎖定、保險、出入庫。</span></div>
+              <div class="dependency-step"><strong>市場（Market）</strong><span>驗證放盤、權限可見性與交易。</span></div>
+              <div class="dependency-step"><strong>金融（Finance）</strong><span>授信額度、黑卡、預售、清算。</span></div>
+              <div class="dependency-step"><strong>合約（Contracts）</strong><span>結算、權益更新、費用拆分。</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="milestones">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">里程碑（Milestones）</div>
+            <h2>六個上線閘口。</h2>
+            <p>從已跑通的 MVP 到金融化和規模化，每一關只保留狀態、DRI 和當前卡點。</p>
+          </div>
+          <p class="section-note">同步來源：OKR 追蹤表（OKR Tracker）/ 內部員工資料庫（Internal Portal），更新：2026-04-23。M1-M3 並行推進，M4-M5 以前置標準作為上線閘口。</p>
+        </div>
+
+        <div class="milestone-strip" aria-label="RIVEX 里程碑狀態（milestone status）">
+          <div class="milestone-strip-item" style="--accent: var(--green)">
+            <span>M0</span>
+            <strong>MVP 核心</strong>
+            <em>已跑通 / 穩定化</em>
+          </div>
+          <div class="milestone-strip-item" style="--accent: var(--cyan)">
+            <span>M1</span>
+            <strong>體驗硬化</strong>
+            <em>UX/UI 修整中</em>
+          </div>
+          <div class="milestone-strip-item" style="--accent: var(--gold)">
+            <span>M2</span>
+            <strong>數據底座</strong>
+            <em>爬取與清洗中</em>
+          </div>
+          <div class="milestone-strip-item" style="--accent: var(--violet)">
+            <span>M3</span>
+            <strong>鑑定標準</strong>
+            <em>線上跑通 / 線下待合作</em>
+          </div>
+          <div class="milestone-strip-item" style="--accent: var(--orange)">
+            <span>M4</span>
+            <strong>借貸風控</strong>
+            <em>貸款成數（LTV）/ 清算待決策</em>
+          </div>
+          <div class="milestone-strip-item" style="--accent: var(--rose)">
+            <span>M5</span>
+            <strong>市場規模化</strong>
+            <em>等前置標準成熟</em>
+          </div>
+        </div>
+
+        <div class="milestone-timeline">
+          <article class="milestone-step" style="--accent: var(--green)">
+            <div class="milestone-marker">M0</div>
+            <div class="milestone-main">
+              <div class="milestone-topline">
+                <h3>最小可行產品（MVP）可演示核心</h3>
+                <span class="milestone-status">已基本完成</span>
+              </div>
+              <p class="milestone-one-line">行動 App、網頁 App（WebApp）、手機端（Mobile）、手錶識別、對話建議、資產管理已能串起演示（demo）。</p>
+              <div class="milestone-meta">
+                <span><b>直接負責人（DRI）</b>Ruilin Zhao；執行支援：Jason Li / Zhenxin Huang</span>
+                <span><b>卡點</b>跨端體驗、圖表與邊界狀態還要收斂。</span>
+              </div>
+              <div class="milestone-module-strip">
+                <span>產品入口</span>
+                <span>人工智能識別（AI）</span>
+                <span>資產管理</span>
+              </div>
+              <details class="milestone-detail">
+                <summary>細節</summary>
+                <div class="milestone-detail-grid">
+                  <div class="milestone-mini"><b>已完成</b><span>主流程、資產卡、管理界面、基礎對話建議。</span></div>
+                  <div class="milestone-mini"><b>下一步</b><span>穩定演示路徑（demo path），整理可展示版本。</span></div>
+                  <div class="milestone-mini"><b>參與</b><span>Guo Jintao / Long Jikang / Zhou Junfei。</span></div>
+                </div>
+              </details>
+            </div>
+          </article>
+
+          <article class="milestone-step" style="--accent: var(--cyan)">
+            <div class="milestone-marker">M1</div>
+            <div class="milestone-main">
+              <div class="milestone-topline">
+                <h3>產品體驗硬化</h3>
+                <span class="milestone-status">進行中</span>
+              </div>
+              <p class="milestone-one-line">把當前 MVP 從「能用」推到「能穩定展示、能讓外部人理解」。</p>
+              <div class="milestone-meta">
+                <span><b>直接負責人（DRI）</b>Ruilin Zhao；體驗與界面執行：Jason Li / Zhou Junfei</span>
+                <span><b>卡點</b>移動端、國際化、價格圖表與模擬數據（mock data）標識。</span>
+              </div>
+              <div class="milestone-module-strip">
+                <span>UX/UI</span>
+                <span>Web/UI</span>
+                <span>圖表</span>
+              </div>
+              <details class="milestone-detail">
+                <summary>細節</summary>
+                <div class="milestone-detail-grid">
+                  <div class="milestone-mini"><b>已完成</b><span>大量已知問題已修正。</span></div>
+                  <div class="milestone-mini"><b>下一步</b><span>建立演示（demo）驗收清單和截圖狀態。</span></div>
+                  <div class="milestone-mini"><b>注意</b><span>借貸頁需標為系統原型 / 模擬數據。</span></div>
+                </div>
+              </details>
+            </div>
+          </article>
+
+          <article class="milestone-step" style="--accent: var(--gold)">
+            <div class="milestone-marker">M2</div>
+            <div class="milestone-main">
+              <div class="milestone-topline">
+                <h3>數據底座與資料治理</h3>
+                <span class="milestone-status">清洗中</span>
+              </div>
+              <p class="milestone-one-line">手錶和紅酒已建庫，成交數據仍在爬取、去重和品質檢查。</p>
+              <div class="milestone-meta">
+                <span><b>直接負責人（DRI）</b>Ruilin Zhao / Long Jikang</span>
+                <span><b>卡點</b>重複 ref、老款缺失、欄位單位不一致。</span>
+              </div>
+              <div class="milestone-module-strip">
+                <span>手錶資料庫（DB）</span>
+                <span>紅酒資料庫（DB）</span>
+                <span>成交數據</span>
+              </div>
+              <details class="milestone-detail">
+                <summary>細節</summary>
+                <div class="milestone-detail-grid">
+                  <div class="milestone-mini"><b>已完成</b><span>手錶與酒類資料庫初步建立。</span></div>
+                  <div class="milestone-mini"><b>下一步</b><span>資料結構（schema）、去重規則、品質報告。</span></div>
+                  <div class="milestone-mini"><b>參與</b><span>Clifton Yang 支援收藏與業務資料。</span></div>
+                </div>
+              </details>
+            </div>
+          </article>
+
+          <article class="milestone-step" style="--accent: var(--violet)">
+            <div class="milestone-marker">M3</div>
+            <div class="milestone-main">
+              <div class="milestone-topline">
+                <h3>鑑定與信任標準</h3>
+                <span class="milestone-status">線上已跑通</span>
+              </div>
+              <p class="milestone-one-line">LegitApp 線上鑑定已聯動資產管理，線下標準和合作仍要落地。</p>
+              <div class="milestone-meta">
+                <span><b>直接負責人（DRI）</b>Jason Li / Zhenxin Huang；線下鑑定直接負責人（DRI）待指派</span>
+                <span><b>卡點</b>亨德利是目標合作方（target partner），線下標準作業流程（SOP）未定稿。</span>
+              </div>
+              <div class="milestone-module-strip">
+                <span>LegitApp</span>
+                <span>亨德利</span>
+                <span>鑑定標準作業流程（SOP）</span>
+              </div>
+              <details class="milestone-detail">
+                <summary>細節</summary>
+                <div class="milestone-detail-grid">
+                  <div class="milestone-mini"><b>已完成</b><span>線上鑑定與資產管理聯動一輪。</span></div>
+                  <div class="milestone-mini"><b>下一步</b><span>證據包、人工覆核、線下試點流程。</span></div>
+                  <div class="milestone-mini"><b>參與</b><span>Zhenxin Huang / Yik Huang。</span></div>
+                </div>
+              </details>
+            </div>
+          </article>
+
+          <article class="milestone-step" style="--accent: var(--orange)">
+            <div class="milestone-marker">M4</div>
+            <div class="milestone-main">
+              <div class="milestone-topline">
+                <h3>借貸與風控閉環</h3>
+                <span class="milestone-status">需決策</span>
+              </div>
+              <p class="milestone-one-line">資金方和借貸管理系統已啟動，正式產品要等風控與法律閘口。</p>
+              <div class="milestone-meta">
+                <span><b>直接負責人（DRI）</b>借貸風控：Ruilin Zhao；<span class="jim-highlight">Jim 為資產標準、系統化協議、交易分潤、金融化 KPI、機構溝通節奏、第三方財務公司過渡與結構化信用的建議承接方向（target）</span></span>
+                <span><b>卡點</b>鑑定標準、貸款成數（LTV）、第三方財務公司承接、清算規則、合約邊界。</span>
+              </div>
+              <div class="milestone-module-strip">
+                <span>資金方</span>
+                <span>貸款成數（LTV）/ 風險評分（RRS）</span>
+                <span>借貸系統</span>
+                <span>結構化信用（Structured Credit）</span>
+              </div>
+              <details class="milestone-detail">
+                <summary>細節</summary>
+                <div class="milestone-detail-grid">
+                  <div class="milestone-mini"><b>已完成</b><span>資金方與借貸系統方向已開始。</span></div>
+                  <div class="milestone-mini"><b>下一步</b><span>Ruilin 覆蓋借貸風控；<span class="jim-highlight">Jim 可與團隊建立資產標準、分潤帳本、金融化 KPI、機構溝通節奏、第三方財務公司過渡和機構資金框架。</span></span></div>
+                  <div class="milestone-mini"><b>再定義</b><span>抵押品准入、授信、清算、合同規則。</span></div>
+                </div>
+              </details>
+            </div>
+          </article>
+
+          <article class="milestone-step" style="--accent: var(--rose)">
+            <div class="milestone-marker">M5</div>
+            <div class="milestone-main">
+              <div class="milestone-topline">
+                <h3>市場、護照與規模化</h3>
+                <span class="milestone-status">後置啟動</span>
+              </div>
+              <p class="milestone-one-line">交易、需求池、數字孿生護照、托管保險物流，等 M2-M4 標準成熟後展開。</p>
+              <div class="milestone-meta">
+                <span><b>直接負責人（DRI）</b>待指派</span>
+                <span><b>卡點</b>可驗證資產、可用估值、交割與合作方權限。</span>
+              </div>
+              <div class="milestone-module-strip">
+                <span>交易市場</span>
+                <span>護照協議</span>
+                <span>托管保險</span>
+              </div>
+              <details class="milestone-detail">
+                <summary>細節</summary>
+                <div class="milestone-detail-grid">
+                  <div class="milestone-mini"><b>前置</b><span>數據品質、鑑定標準、借貸風控。</span></div>
+                  <div class="milestone-mini"><b>下一步</b><span>先拆市場、護照、托管三條負責人（owner）線。</span></div>
+                  <div class="milestone-mini"><b>再定義</b><span>護照元資料（passport metadata）、交割流程、VIP 增長。</span></div>
+                </div>
+              </details>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="governance">
+      <div class="page-shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">治理與決策權（Governance and Decision Rights）</div>
+            <h2>需要設立的治理機制。</h2>
+            <p>RIVEX 涉及資產、金融、合約和實物安全，關鍵決策不能只由單一產品或工程職能決定。</p>
+          </div>
+          <p class="section-note">這裡是建議治理架構，不代表所有委員會已經正式成立；正式啟動前需要再確認召集人與決策權。</p>
+        </div>
+
+        <div class="governance-grid">
+          <article class="governance-card" style="--accent: var(--cyan)">
+            <h3>產品委員會（Product Council）</h3>
+            <p>負責產品優先級、用戶旅程、最小可行產品（MVP）範圍和跨端體驗。</p>
+            <ul>
+              <li>建議召集：Ruilin Zhao / Yik Huang</li>
+              <li>參與：Jason Li、Zhenxin Huang、Zhou Junfei、設計、工程、AI、運營</li>
+            </ul>
+          </article>
+          <article class="governance-card" style="--accent: var(--green)">
+            <h3>風險委員會（Risk Committee）</h3>
+            <p>負責貸款成數（LTV）、授信額度、流動性分數、違約處理和清算政策。</p>
+            <ul>
+              <li>狀態：待成立，直接負責人（DRI）待確認</li>
+              <li>參與：金融、法務、估值、托管庫、資金方</li>
+            </ul>
+          </article>
+          <article class="governance-card" style="--accent: var(--blue)">
+            <h3>協議委員會（Protocol Committee）</h3>
+            <p>負責護照元資料、智能合約、節點分成、重鑄與鏈上標準。</p>
+            <ul>
+              <li>狀態：待成立，直接負責人（DRI）待確認</li>
+              <li>參與：區塊鏈、資安、法務、節點商務拓展</li>
+            </ul>
+          </article>
+          <article class="governance-card" style="--accent: var(--gold)">
+            <h3>鑑定委員會（Authentication Board）</h3>
+            <p>負責 Origin 掃描標準、RIVEX 風險評分（RRS）、專家覆核與品類標準。</p>
+            <ul>
+              <li>建議召集：Jason Li / Zhenxin Huang</li>
+              <li>參與：資產專家、計算機視覺、運營；亨德利為目標合作方（target partner）</li>
+              <li>借貸風控與貸款成數（LTV）由 Ruilin Zhao 在金融閘口承接</li>
+            </ul>
+          </article>
+          <article class="governance-card" style="--accent: var(--violet)">
+            <h3>運營委員會（Ops Committee）</h3>
+            <p>負責托管庫、保險、入出庫、交易交割、事故處理與 VIP 服務。</p>
+            <ul>
+              <li>狀態：待成立，直接負責人（DRI）待確認</li>
+              <li>參與：運營、保險、合規、客戶成功</li>
+            </ul>
+          </article>
+          <article class="governance-card" style="--accent: var(--rose)">
+            <h3>合規審查關卡（Compliance Gate）</h3>
+            <p>所有金融、交易、黑卡、節點和跨境產品上線前必須經過合規審查。</p>
+            <ul>
+              <li>狀態：待成立，外部律所 / 合規顧問待接入</li>
+              <li>參與：合規、風控、產品、金融、法務</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="page-shell">
+      <span>RIVEX 合夥人落地協作藍圖（Partner Execution Blueprint）</span>
+      <span>標準定義 → 系統建設 → 網絡設立 → 合作驗收</span>
+    </div>
+  </footer>
+
+  <script>
+    const statusLabels = {
+      usable: { label: "可用（已跑通）", tone: "var(--green)" },
+      progress: { label: "進行中", tone: "var(--cyan)" },
+      decision: { label: "需決策", tone: "var(--orange)" },
+      planned: { label: "待啟動", tone: "var(--quiet)" },
+      partner: { label: "合作目標", tone: "var(--gold)" },
+      unassigned: { label: "待指派", tone: "var(--quiet)" }
+    };
+
+    const ownerDirectory = {
+      yik_huang: {
+        name: "Yik Huang",
+        localName: "黄欣奕",
+        role: "戰略、資源、資金與合作",
+        modules: ["借貸 / 資金方", "亨德利合作", "合作網絡"]
+      },
+      ruilin_zhao: {
+        name: "Ruilin Zhao",
+        localName: "趙銳林",
+        role: "產品與策略統籌、工程與平台主責、借貸風控、資料管線（pipeline）",
+        modules: ["產品與策略", "工程與平台", "軟件研發統籌", "借貸風控 / 貸款成數（LTV）", "資料管線（pipeline）"]
+      },
+      huang_zhenxin: {
+        name: "Zhenxin Huang",
+        localName: "黄桢鑫",
+        role: "技術架構、多端交付、人工智能工作流（AI workflow）",
+        modules: ["行動 App / 網頁 App（WebApp）", "後端架構", "人工智能工作流（AI workflow）"]
+      },
+      guo_jintao: {
+        name: "Guo Jintao",
+        localName: "郭金涛",
+        role: "人工智能後端（AI backend）、檢索增強生成（RAG）、資產鏈路",
+        modules: ["專家大模型", "資產管理鏈路", "後端接口"]
+      },
+      long_jikang: {
+        name: "Long Jikang",
+        localName: "龙继康",
+        role: "後端、數據處理、接口",
+        modules: ["應用程式介面（API）", "數據處理", "資產後端"]
+      },
+      zhou_junfei: {
+        name: "Zhou Junfei",
+        localName: "周骏飞",
+        role: "前端、Web/UI、可視化",
+        modules: ["Web 前端", "管理界面", "圖表展示"]
+      },
+      tsan_yeung_li: {
+        name: "Jason Li",
+        localName: "李燦陽",
+        role: "iOS、人工智能生成內容（AIGC）增長、自動化、項目協同",
+        modules: ["iOS 前端", "AIGC 內容", "社媒推廣", "上線 / 增長"]
+      },
+      yang_clifton: {
+        name: "Clifton Yang",
+        localName: "杨主韩",
+        role: "業務研究、收藏數據支持",
+        modules: ["品類研究", "收藏數據", "市場材料"]
+      },
+      neo_huang: {
+        name: "Neo Huang",
+        localName: "黄鸿杰",
+        role: "資金、投資視角、運營推廣協同",
+        modules: ["資金方", "金融產品", "人工智能生成內容（AIGC）推廣", "投資視角"]
+      },
+      zheng_hao: {
+        name: "Zheng Hao",
+        localName: "郑浩",
+        role: "財務、運營、治理",
+        modules: ["財務治理", "合約流程", "運營協同"]
+      },
+      hao_yanshan: {
+        name: "Jim Kok",
+        localName: "郝延山 / Hao Yanshan",
+        role: "建議方向：策略長 / 合夥人（CSO / Partner），資產標準化、系統化協議、鏈上交易分潤、金融化與結構化信用",
+        modules: ["資產標準", "Origin / Passport", "系統化工作流", "交易分潤帳本", "節點經濟", "金融化 KPI", "第三方財務公司過渡", "RWA / ABS 可選路徑"]
+      }
+    };
+
+    const liveMindMapNodes = [
+      {
+        id: "product-entry",
+        title: "用戶產品入口：行動 App / 網頁 App（WebApp）/ 手機端（Mobile）",
+        status: "Ruilin 統籌產品與工程平台；核心入口 MVP 基本完成，正進入體驗、圖表與多端一致性優化",
+        statusTone: "usable",
+        owners: ["ruilin_zhao", "tsan_yeung_li", "huang_zhenxin", "zhou_junfei"],
+        currentState: "功能邊界：拍照識別、對話理解、資產卡、資產詳情、行動入口、網頁 App（WebApp）與手機端體驗。當前前端手機版本、WebApp 與主要流程已基本可用。",
+        done: ["行動 App 與網頁 App（WebApp）主流程已跑通", "手錶識別後可進入對話與資產卡", "產品與工程平台主責已更新為 Ruilin Zhao", "內部測試已沉澱網頁端（Web）/ iOS 問題清單"],
+        next: ["由 Ruilin 統一產品需求文件（PRD）、工程排期和跨端驗收節奏", "統一手機端、網頁 App（WebApp）和管理界面的交互", "補齊價格圖表、資產卡空狀態和多語言文案", "將借貸入口明確標成系統原型 / 模擬數據"],
+        blockers: ["部分移動端 hover 狀態 / 彈窗層級不穩", "價格圖表和資產卡片細節仍需設計打磨", "借貸頁尚未具備正式授信口徑"],
+        sourceTag: "OKR 追蹤表（OKR Tracker）/ 產品更新（Product update）",
+        updatedAt: "2026-04-23"
+      },
+      {
+        id: "asset-management",
+        title: "資產管理系統：投資組合（Portfolio）/ 資產卡（Asset Card）/ 管理後台",
+        status: "資產管理界面、後端與資料庫基本搭好，正在補齊狀態與多端同步",
+        statusTone: "usable",
+        owners: ["ruilin_zhao", "huang_zhenxin", "guo_jintao", "long_jikang", "zhou_junfei"],
+        currentState: "功能邊界：用戶資產庫、持有/追蹤狀態、資產詳情、圖片與資訊管理、管理台、操作日誌與後台接口。",
+        done: ["資產管理後端基本實現", "資料庫已搭好", "手動創建非官方資產與鑑定紀錄接口已有說明"],
+        next: ["由 Ruilin 統籌工程平台驗收和交付優先級", "統一資產狀態、鑑定狀態與前端展示", "補齊網頁端（Web）/ iOS 數據同步邏輯", "把操作日誌和審批語義沉澱成管理後台能力"],
+        blockers: ["更多資訊新增後的修改 / 刪除鏈路待完善", "部分資產名稱、封面圖與語言資料仍需規範", "後端命名與前端顯示口徑需保持一致"],
+        sourceTag: "OKR 追蹤表（OKR Tracker）",
+        updatedAt: "2026-04-23"
+      },
+      {
+        id: "ai-expert",
+        title: "人工智能識別（AI）/ 專家大模型 / 網搜補全",
+        status: "手錶識別較成熟，紅酒等品類可用網搜回答，建議質量仍在優化",
+        statusTone: "progress",
+        owners: ["huang_zhenxin", "guo_jintao"],
+        currentState: "功能邊界：圖像識別、資產問答、專家模型、網搜補全、檢索增強生成（RAG）、錯誤回報與人工覆核升級。",
+        done: ["手錶圖像識別與資產卡片鏈路基本跑通", "簡單專家大模型可輸出基礎建議", "紅酒等品類具備網搜式回答能力"],
+        next: ["提升建議質量與引用可信度", "把人工智能輸出（AI output）與資產管理、鑑定、估值紀錄串起來", "建立錯誤回報與人工覆核路徑"],
+        blockers: ["專家標準和模型邊界尚需更清楚", "多品類資料庫還不完整", "金融 / 法律建議需要嚴格轉人工或加風險提示"],
+        sourceTag: "OKR 追蹤表（OKR Tracker）/ 產品更新（Product update）",
+        updatedAt: "2026-04-23"
+      },
+      {
+        id: "data-foundation",
+        title: "品類數據庫 / 成交數據 / 資料治理",
+        status: "手錶與酒類數據已建庫，成交數據與品質清洗進行中",
+        statusTone: "progress",
+        owners: ["ruilin_zhao", "long_jikang", "yang_clifton"],
+        currentState: "功能邊界：資產品類資料結構（schema）、手錶 / 紅酒數據庫、成交價爬取、圖片與參數來源、資料品質、去重與標準化。",
+        done: ["手錶參數、圖片與成交價資料已進入內部數據工作流", "酒類參數與成交價資料已建任務", "資料品質問題已被明確標註"],
+        next: ["補老款手錶與缺失品牌資料", "重跑拍賣會成交數據資料管線（pipeline）", "將不同來源成交數據拼接成統一總表"],
+        blockers: ["手錶存在重複 ref、缺老款、欄位單位不一致", "水阻、材質、形狀等欄位需要標準化", "部分成交數據仍在爬取與驗證中"],
+        sourceTag: "OKR 追蹤表（OKR Tracker）/ 資料品檢（Data QA）",
+        updatedAt: "2026-04-23"
+      },
+      {
+        id: "valuation-risk",
+        title: "估值引擎 / RIVEX 風險評分（RRS）/ 貸款成數（LTV）風控標準",
+        status: "借貸風控與貸款成數（LTV）由 Ruilin 覆蓋，完整估值 / RIVEX 風險評分（RRS）標準仍需補產品與審批口徑",
+        statusTone: "decision",
+        owners: ["ruilin_zhao"],
+        targetOwners: ["hao_yanshan"],
+        currentState: "功能邊界：估值區間、可比成交、流動性分數、RIVEX 風險評分（RRS）、貸款成數（LTV）、清算折價、授信准入與模型審批。",
+        done: ["手錶資料品質檢查已暴露估值前置問題", "借貸與風控需要的核心概念已列入藍圖", "Ruilin Zhao 覆蓋借貸風控 / 貸款成數（LTV）方向"],
+        next: ["補正式金融產品與審批負責人（owner）", "定義 RIVEX 風險評分（RRS）欄位與品類權重", "建立貸款成數（LTV）、清算價值、低流動性標記的初版規則"],
+        blockers: ["鑑定標準尚未完成", "成交數據還在補強", "未形成可供資金方採用的風控白皮書和審批流程"],
+        sourceTag: "創辦人更新（Founder update）/ OKR 追蹤表（OKR Tracker）",
+        updatedAt: "2026-04-23"
+      },
+      {
+        id: "authentication",
+        title: "鑑定流程 / LegitApp / 亨德利線下合作",
+        status: "線上鑑定與資產管理聯動已完成一輪，線下鑑定合作仍待推進",
+        statusTone: "partner",
+        owners: ["tsan_yeung_li", "huang_zhenxin"],
+        currentState: "功能邊界：線上鑑定提交、鑑定狀態回寫、鑑定詳情、二次鑑定、線下鑑定設施、專家覆核和證據包。",
+        done: ["鑑定與資產管理聯動的前端、後端初版已完成", "鑑定詳情、資產卡片、狀態膠囊和二次鑑定選項已優化", "香港手錶鑑定機構聯繫已進入任務池"],
+        next: ["推進亨德利線下合作接洽", "定義線下鑑定標準作業流程（SOP）、證據包和覆核標準", "確認 LegitApp 與自建標準之間的邊界"],
+        blockers: ["線下合作方未定案", "鑑定標準尚未轉成可審批、可審計的內部規則", "不同品類鑑定資料與多語言資料仍需補齊"],
+        sourceTag: "OKR 追蹤表（OKR Tracker）/ 合作目標（Partner target）",
+        updatedAt: "2026-04-23"
+      },
+      {
+        id: "lending-capital",
+        title: "借貸產品 / 資金方 / 借貸管理系統",
+        status: "借貸風控由 Ruilin 覆蓋；Jim 可共同定義金融化 KPI、機構融資、第三方財務公司過渡、資產池與結構化信用框架",
+        statusTone: "decision",
+        owners: ["ruilin_zhao"],
+        targetOwners: ["hao_yanshan"],
+        currentState: "功能邊界：資金方接入、機構溝通、第三方財務公司過渡、借貸申請、授信額度、還款、展期、逾期、清算、管理後台和法律文件。",
+        done: ["資金方方向已開始", "借貸管理系統進入建設", "借貸頁可作產品展示入口", "Jim 的角色目標已補入金融化 KPI、機構溝通節奏、第三方財務公司過渡和資產池方向"],
+        next: ["由 Ruilin 明確借貸風控 / 貸款成數（LTV）輸入", "Jim 與團隊建立機構溝通名單、金融化 KPI、第三方財務公司候選清單和資產池假設", "把正式授信與模擬展示（mock）做清晰隔離，再逐步沉澱 RIVEX 自有金融架構"],
+        blockers: ["鑑定標準還未完成", "第三方財務公司與外部合規承接方未確認", "風控模型、清算流程與法律文件需先定義", "未正式授信前不應讓用戶誤以為功能已上線"],
+        sourceTag: "創辦人更新（Founder update）/ OKR 追蹤表（OKR Tracker）",
+        updatedAt: "2026-04-23"
+      },
+      {
+        id: "market-trading",
+        title: "市場交易 / 放盤 / 需求池 / 以物易物",
+        status: "市場與放盤能力仍屬待啟動模組，直接負責人（DRI）待指派",
+        statusTone: "unassigned",
+        owners: [],
+        currentState: "功能邊界：追蹤清單、買方需求池、驗證放盤、可見性權限、出價、撮合、所有權變更和以物易物。",
+        done: ["需求池和放盤能力已在藍圖中定義", "資產管理和鑑定聯動為後續放盤提供入口", "尚未看到市場交易模組的執行負責人（owner）"],
+        next: ["等待產品優先級確認與直接負責人（DRI）指派", "先定義交易前認證與放盤准入規則", "再做追蹤條件、放盤可見性和需求提醒原型"],
+        blockers: ["護照與交易前認證尚未成熟", "買賣雙方了解你的客戶（KYC）、資金托管和爭議處理未定", "早期不宜過度承諾交易閉環"],
+        sourceTag: "藍圖（Blueprint）/ OKR 追蹤表（OKR Tracker）",
+        updatedAt: "2026-04-23"
+      },
+      {
+        id: "passport-protocol",
+        title: "數字孿生護照 / 鏈上透明度 / 智能合約分潤",
+        status: "護照與協議屬後續核心能力，Jim 可共同把手錶等實物資產從標準化資料推向可追溯、可交易、可分潤、可金融化的鏈上基礎設施",
+        statusTone: "unassigned",
+        owners: [],
+        targetOwners: ["hao_yanshan"],
+        currentState: "功能邊界：手錶資產元資料（metadata）、鑑定證據包、圖像 / 3D 哈希、所有權、交易前認證、重鑄、節點分成、鏈上 / 鏈下資料邊界與智能合約分潤。",
+        done: ["護照、追加紀錄和節點分成已在白皮書與藍圖中定義", "手錶識別、資產卡和鑑定紀錄正在形成護照所需前置資料", "Jim 的區塊鏈金融基礎設施與結構化信用經驗可用來評估上鏈、交易分潤、收益分配、機構材料與未來金融化路徑"],
+        next: ["先定義手錶資產上鏈元資料（metadata）、鑑定證據包和權益紀錄標準", "設計智能合約分潤 / 節點收益帳本，明確平台、鑑定方、合作節點、托管庫與資金方的收益追蹤", "把鏈上透明度、交易分潤和系統化協議轉成機構可理解的資產金融材料，再評估 RWA / ABS / 資產代幣化（asset tokenization）融資路徑"],
+        blockers: ["鏈上與鏈下資料邊界未定", "鑑定標準和資產資料結構（schema）仍在變動", "智能合約、收益分配、隱私和法律結構尚未啟動審查"],
+        sourceTag: "藍圖（Blueprint）",
+        updatedAt: "2026-04-23"
+      },
+      {
+        id: "vault-ops",
+        title: "托管庫 / 保險 / 物流 / 線下營運",
+        status: "線下營運能力待合作網絡和鑑定設施落地後啟動，直接負責人（DRI）待指派",
+        statusTone: "unassigned",
+        owners: [],
+        currentState: "功能邊界：入庫、出庫、鎖定、保險、盤點、物流、事故處理、VIP 交付和與金融狀態同步。",
+        done: ["托管、保險和線下節點已納入整體藍圖", "資產管理和借貸模組已需要讀取托管/保險狀態", "尚未看到托管庫 / 保險 / 物流進入執行任務"],
+        next: ["等待線下鑑定與資金產品路徑更清楚後指派直接負責人（DRI）", "定義入庫、保險、鎖定與盤點標準作業流程（SOP）", "評估自營與合作托管庫路徑"],
+        blockers: ["托管庫合作方與保險方案未定", "線下鑑定和托管流程尚未閉環", "高價值資產物流和事故責任需要法律文件支撐"],
+        sourceTag: "藍圖（Blueprint）/ 創辦人更新（Founder update）",
+        updatedAt: "2026-04-23"
+      },
+      {
+        id: "partner-growth",
+        title: "運營推廣 / 人工智能生成內容（AIGC）內容引擎 / 合作方網絡",
+        status: "Jason 與 Neo 正在推進運營推廣與社媒內容，合作方管道仍需後續拆分",
+        statusTone: "progress",
+        owners: ["tsan_yeung_li", "neo_huang"],
+        targetOwners: ["hao_yanshan"],
+        currentState: "功能邊界：人工智能生成內容（AIGC）內容生產、社交媒體推廣、品牌素材、產品故事、資金方 / 合作方溝通材料、VIP 客戶與外部合作網絡。",
+        done: ["Jason 與 Neo 正在協助運營推廣和社交媒體內容", "人工智能生成內容（AIGC）被用於快速生成內容、提升外部影響力", "上線、搜尋引擎優化（SEO）、ProductHunt、品牌材料已進入運營工作流"],
+        next: ["建立人工智能生成內容（AIGC）內容日曆與內容審核節奏", "把產品演示（demo）、鑑定流程、借貸金融化故事轉成社媒內容包", "把合作方分成鑑定、資金、交易、托管、保險五類後再逐類指派負責人（owner）"],
+        blockers: ["內容需要避免金融產品過度承諾", "外部合作狀態需要固定更新節奏", "合約、分成與服務標準尚未固化"],
+        sourceTag: "內部員工資料庫（Internal Portal）/ OKR 追蹤表（OKR Tracker）",
+        updatedAt: "2026-04-23"
+      },
+      {
+        id: "team-governance",
+        title: "團隊 / 治理 / DRI / 進度管理",
+        status: "核心 RIVEX 人員已配置，Jim 可作資產標準化、系統化協議、鏈上交易分潤、金融化與結構化信用建議承接方向（target）",
+        statusTone: "progress",
+        owners: ["yik_huang", "ruilin_zhao", "huang_zhenxin"],
+        targetOwners: ["hao_yanshan"],
+        currentState: "功能邊界：負責人名冊（owner roster）、模組直接負責人（DRI）、後備負責人（backup owner）、OKR 任務節奏、跨部門治理、外部合作方狀態同步。",
+        done: ["RIVEX 已有技術、人工智能（AI）、後端、前端、數據、增長和業務研究人員", "內部員工資料庫（Internal Portal）已有員工名冊（people roster）", "OKR 追蹤表（OKR Tracker）已將部分目標 / 任務（objective / task）綁定到負責人（owner）"],
+        next: ["確認 Jim 的正式職銜（title）、資產標準 / Passport / 分潤帳本 / 金融化 KPI、授權邊界與加入節奏", "把已啟動板塊的直接負責人（DRI）和後備負責人（backup owner）固化", "未啟動板塊保持待指派，不提前填人名"],
+        blockers: ["Jim 的資料已可作內部角色承接方向（role target），但正式任命、資產標準、系統協議、金融化目標和職責邊界仍需確認", "第三方財務公司與外部合規承接方未定", "部分商務、法務、風控職能仍需角色更清晰", "外部合作方進度需要固定更新節奏"],
+        sourceTag: "內部員工資料庫（Internal Portal）",
+        updatedAt: "2026-04-23"
+      }
+    ];
+
+    const workstreams = [
+      {
+        layer: "Digital",
+        accent: "var(--cyan)",
+        title: "RIVEX 行動 App：拍攝建檔 / 專家解讀 / 資產管理 / 行動執行",
+        lead: "Ruilin Zhao（產品與工程統籌） / Jason Li / Zhenxin Huang / Zhou Junfei",
+        mission: "把用戶手中的收藏變成可拍攝建檔、可交互了解、可管理、可追蹤、可行動的資產入口。",
+        define: ["四步主流程與每一步用戶體驗", "資產卡欄位、用戶問題、追蹤清單", "行動 App 與護照、市場、金融模組的跳轉邏輯"],
+        develop: ["行動 App 與網頁 App（WebApp）", "拍照建檔、光學文字識別（OCR）、資產卡、智能代理對話", "追蹤提醒、放盤瀏覽、行動中心"],
+        establish: ["產品路線圖與發布節奏", "設計系統與多設備響應式標準", "用戶研究、VIP 導入、客服流程"],
+        complete: ["用戶能完成拍攝建檔、專家解讀、資產管理、行動執行", "所有資產卡可進入鑑定、護照、市場、金融模組", "iPhone、iPad、折疊手機和桌面端均可用"],
+        teams: ["產品", "體驗 / 界面設計（UX/UI）", "行動端", "前端", "後端", "人工智能 / 大模型（AI/LLM）", "測試", "客戶成功"]
+      },
+      {
+        layer: "Digital",
+        accent: "var(--cyan)",
+        title: "資產管家人工智能（AI）+ 專家大模型",
+        lead: "Zhenxin Huang / Guo Jintao",
+        mission: "讓用戶可以像問專家一樣理解腕錶、紅酒、包袋、珠寶、藝術品與自己的整體收藏組合。",
+        define: ["專家模型邊界與禁答規則", "品類知識庫、引用來源、可信度標記", "估值解讀、品相解讀、流動性解讀的輸出口徑"],
+        develop: ["大模型編排、檢索增強生成（RAG）與提示詞庫", "資產問答、收藏組合分析、行動建議", "模型評測、人工覆核、錯誤回報"],
+        establish: ["專家知識更新流程", "模型安全與合規審查", "人工專家升級處理隊列"],
+        complete: ["能回答資產基礎、估值、品相、流動性與下一步行動", "高風險金融/法律問題能正確轉人工或提示", "模型輸出可被保存到資產紀錄"],
+        teams: ["人工智能 / 大模型（AI/LLM）", "數據", "資產專家", "產品", "法務", "測試"]
+      },
+      {
+        layer: "Digital",
+        accent: "var(--cyan)",
+        title: "資產追蹤 / 需求池 / 放盤提醒",
+        lead: "直接負責人（DRI）待指派",
+        mission: "讓買家可以追蹤想要的資產，未來有人放盤時被提醒，形成 RIVEX 的需求側流動性池。",
+        define: ["追蹤條件：品牌、型號、年份、材質、配置、價格區間", "放盤提醒規則與通知頻率", "買方需求對賣方可見的隱私邊界"],
+        develop: ["追蹤清單、提醒、推薦引擎", "買方需求池、賣方匹配信號", "App 推送、電郵、智能代理消息"],
+        establish: ["推薦策略與冷啟動規則", "買方意向和出價的合規流程", "市場運營對高價值需求的跟進標準作業流程（SOP）"],
+        complete: ["用戶可追蹤、取消追蹤、收到匹配提醒", "市場代理可讀取追蹤信號做撮合", "需求池可反饋給估值與流動性模型"],
+        teams: ["市場", "行動端", "後端", "人工智能推薦（AI recommendation）", "數據", "合規", "市場運營"]
+      },
+      {
+        layer: "Standard",
+        accent: "var(--gold)",
+        title: "資產數據核心 + 估值引擎",
+        lead: "Ruilin Zhao / Long Jikang",
+        mission: "建立資產資料底座、估值區間、可比成交、成交量、成交額、成交深度和流動性監控。",
+        define: ["資產資料結構（schema）、品類分類法（taxonomy）、元資料品質分數", "估值口徑：拍賣、二級市場、交易商、內部成交", "流動性指標：成交量、換手率、買賣價差、成交深度、清算折價"],
+        develop: ["市場數據接入管道", "估值模型與可比交易匹配", "風控儀表板、數據品質監控"],
+        establish: ["數據供應商合作", "估值覆核流程", "數據治理與版本控制"],
+        complete: ["每個可金融化資產都有估值和流動性視圖", "估值可被行動 App、RIVEX 風險評分（RRS）、金融與市場模組調用", "異常價格與低流動性資產能被標記"],
+        teams: ["數據工程", "數據科學", "估值分析", "後端", "風控", "資產專家"]
+      },
+      {
+        layer: "Standard",
+        accent: "var(--gold)",
+        title: "RIVEX Origin 確權硬件 + 鑑定實驗室",
+        lead: "硬件 / 實驗室直接負責人（DRI）待指派",
+        mission: "把高價值非標實物轉成可驗證的物理證據包，支持鑑定、評級、護照與交易前認證。",
+        define: ["Origin 掃描標準、設備規格、校準規則", "品類掃描協議：腕錶、酒、包、珠寶、藝術品", "專家覆核和異常處理流程"],
+        develop: ["影像採集、3D 建模、材質/序列號識別", "掃描後台、案例覆核隊列", "設備測試、校準工具、資料上傳管道"],
+        establish: ["鑑定實驗室", "授權節點培訓與審計", "樣本庫、假貨庫、標準品相案例庫"],
+        complete: ["掃描資料可生成證據包", "專家覆核能追蹤簽名與結論", "Origin 輸出可進入 RIVEX 風險評分（RRS）和護照"],
+        teams: ["硬件研發", "計算機視覺", "資產專家", "實驗室運營", "後端", "測試"]
+      },
+      {
+        layer: "Standard",
+        accent: "var(--gold)",
+        title: "RIVEX 評級系統 / 風險評分（RRS）+ 風險模型",
+        lead: "Ruilin Zhao（借貸風控 / 貸款成數 LTV）；完整 RIVEX 風險評分（RRS）負責人（owner）待補",
+        mission: "把主觀品相與非標風險拆成可計算、可審計、可被金融機構採用的分數。",
+        define: ["RIVEX 風險評分（RRS）欄位：真偽、品相、完整性、材質、功能、配件", "金融參數：風險分數、可貸價值、貸款成數（LTV）、清算價值", "品類權重和分數治理機制"],
+        develop: ["RIVEX 風險評分（RRS）評分引擎", "人工覆核工具、分數版本控制", "風險模型應用程式介面（API）與審批儀表板"],
+        establish: ["RIVEX 風險評分委員會（RRS Committee）", "模型審計與定期回測", "標準白皮書與第三方採用指南"],
+        complete: ["RIVEX 風險評分（RRS）可生成標準化分數", "分數可推導貸款成數（LTV）和授信額度", "每次分數變更有原因、版本與審批紀錄"],
+        teams: ["風控", "數據科學", "估值", "資產專家", "產品", "合規"]
+      },
+      {
+        layer: "Standard",
+        accent: "var(--blue)",
+        title: "數字孿生護照協議",
+        lead: "直接負責人（DRI）待指派",
+        mission: "以手錶資產作為第一個試點（pilot），把標準化資料、鑑定、評分、哈希、所有權、交易前認證和節點分成寫入可追溯協議。",
+        define: ["手錶元資料（metadata）、護照元資料、資產 ID、哈希規則", "鑄造、追加、作廢、重鑄與鏈上 / 鏈下資料邊界", "發行節點、認證節點、托管庫、RIVEX 的智能合約分潤邏輯"],
+        develop: ["智能合約分潤、元資料服務、護照查看器", "追加認證紀錄、重鑄脈絡、鏈上查驗", "應用程式介面（API）查驗、節點收益賬本、審計日誌"],
+        establish: ["協議治理與版本控制", "智能合約審計與法務前置", "節點公司導入與服務等級協議"],
+        complete: ["每件通過標準化的手錶資產可發行護照", "每次交易前認證可追加紀錄", "後續交易 / 借貸 / 應用程式介面（API）使用可觸發節點分成"],
+        teams: ["區塊鏈", "後端", "資安", "法務", "節點商務拓展", "產品"]
+      },
+      {
+        layer: "System",
+        accent: "var(--violet)",
+        title: "智能代理網絡 + 工作流編排",
+        lead: "直接負責人（DRI）待指派",
+        mission: "讓用戶、估值、鑑定、市場、借貸、托管庫、合規與執行代理協同工作。",
+        define: ["每個智能代理的責任、工具權限、人工介入條件", "工作流狀態機與審批節點", "代理輸出的可審計格式"],
+        develop: ["智能代理編排器、工具註冊表、工作流引擎", "任務隊列、通知、審批台", "人機協作與例外處理"],
+        establish: ["智能代理治理", "安全權限和審批矩陣", "運營團隊處理代理升級任務"],
+        complete: ["智能代理可觸發鑑定、估值、放盤、借貸、托管庫任務", "每個任務有直接負責人（DRI）、狀態、日誌和結果", "高風險行動必須經人工審批"],
+        teams: ["人工智能平台（AI platform）", "後端", "產品", "資安", "運營", "合規"]
+      },
+      {
+        layer: "System",
+        accent: "var(--violet)",
+        title: "托管庫 + 物聯網托管系統",
+        lead: "直接負責人（DRI）待指派",
+        mission: "建立實物控制、托管、鎖定、保險、出入庫與交割能力，讓金融化有物理保障。",
+        define: ["托管標準作業流程（SOP）、入庫 / 出庫流程、雙人審批", "托管庫狀態與護照 / 金融狀態映射", "保險覆蓋、事故處理、盤點規則"],
+        develop: ["托管庫運營控制台、庫存系統、物聯網監控", "資產保管鏈紀錄、資產鎖定/解鎖工作流", "保險資料同步與異常告警"],
+        establish: ["自營或合作托管庫網絡", "保險合作與物流合作", "季度盤點與審計流程"],
+        complete: ["資產可被物理鎖定並同步護照", "金融模組可讀取托管庫和保險狀態", "出入庫與交割有完整審計紀錄"],
+        teams: ["托管庫運營", "物聯網", "後端", "保險", "合規", "資安"]
+      },
+      {
+        layer: "Finance",
+        accent: "var(--green)",
+        title: "RIVEX 市場（Market）：驗證放盤 / 交易 / 以物易物",
+        lead: "直接負責人（DRI）待指派",
+        mission: "把已驗證資產變成可放盤、可權限化展示、可撮合、可交易、可所有權更換、可以物易物的市場。",
+        define: ["驗證放盤條件和可見性規則", "交易流程、預售 / 委託出售、以物易物規則", "買方 / 賣方 / 了解你的客戶（KYC）/ 交易前認證流程"],
+        develop: ["市場、放盤、出價、撮合", "權限化可見性、需求池、資金托管工作流", "所有權轉讓、交換結算"],
+        establish: ["市場運營、拍賣行和交易商網絡", "交易合規審批", "售後、爭議、取消交易流程"],
+        complete: ["完成護照的資產可上架", "交易前認證和結算能閉環", "成交可更新護照、托管庫權益和節點分成"],
+        teams: ["市場", "產品", "前端", "後端", "區塊鏈", "合規", "市場運營"]
+      },
+      {
+        layer: "Finance",
+        accent: "var(--green)",
+        title: "RIVEX 金融 + 黑卡",
+        lead: "Ruilin Zhao（借貸風控）；金融產品 / 合規直接負責人（DRI）待補",
+        mission: "把已托管、已鑑定、已上鏈的資產轉成授信額度、黑卡消費、借貸合約、預售和清算能力。",
+        define: ["授信政策、貸款成數（LTV）、利息觸發、逾期 / 違約規則", "500 萬美元以上（$5M+）黑卡資格、消費額度、還款流程", "預售預付款、拍賣清算、剩餘返還"],
+        develop: ["金融引擎、授信額度計算器", "黑卡賬本、還款、利息觸發", "抵押狀態、違約工作流、拍賣清算"],
+        establish: ["資金方、支付 / 發卡合作、保險、清算渠道", "風險委員會、授信審批標準作業流程（SOP）", "法務文件與用戶披露"],
+        complete: ["符合條件資產可生成授信額度", "黑卡消費和還款可被追蹤", "違約後能依法清算並返還剩餘款"],
+        teams: ["金融", "風控", "後端", "支付", "法務", "合規", "托管庫運營"]
+      },
+      {
+        layer: "Trust",
+        accent: "var(--rose)",
+        title: "法務 / 合規 / 了解你的客戶（KYC）/ 反洗錢（AML）",
+        lead: "直接負責人（DRI）待指派",
+        mission: "讓托管、交易、借貸、黑卡、節點、跨境和數據使用都在可執行的法律框架內。",
+        define: ["司法轄區策略與監管分類", "了解你的客戶（KYC）/ 反洗錢（AML）/ 制裁名單篩查", "托管、借貸、交易、節點、應用程式介面（API）、保險文件"],
+        develop: ["了解你的客戶（KYC）工作流、合規控制台、案例覆核", "合約模板生成器", "審計日誌、數據隱私控制"],
+        establish: ["合規審批關卡", "外部律所與監管顧問", "金融產品上線前法務審查標準作業流程（SOP）"],
+        complete: ["每個高風險流程都有合約、審批與紀錄", "用戶身份與資金來源可查驗", "跨境交易、借貸、節點分成有合規方案"],
+        teams: ["法務", "合規", "風控", "產品", "後端", "金融"]
+      },
+      {
+        layer: "Trust",
+        accent: "var(--orange)",
+        title: "資安 / 開發維運（DevOps）/ 數據治理",
+        lead: "直接負責人（DRI）待指派",
+        mission: "保障平台、資料、合約、密鑰、模型、節點和合作方應用程式介面（API）的安全與可用性。",
+        define: ["角色權限控制（RBAC）、密鑰管理、資料分級、審計日誌", "智能合約審計政策", "事故響應、備份、服務等級協議"],
+        develop: ["持續整合 / 持續交付（CI/CD）、監控、告警、備份", "權限系統、審計軌跡、速率限制", "安全儀表板、合作方應用程式介面（API）控制"],
+        establish: ["資安審查關卡", "滲透測試和合約審計", "網站可靠性工程（SRE）值班與事故演練"],
+        complete: ["所有高權限行為可審計", "合約和核心應用程式介面（API）經安全審查", "系統具備備份、恢復、告警和事件處理流程"],
+        teams: ["資安", "網站可靠性工程（SRE）", "後端", "區塊鏈", "數據治理", "測試"]
+      },
+      {
+        layer: "Trust",
+        accent: "var(--blue)",
+        title: "護照節點 + 合作方網絡",
+        lead: "直接負責人（DRI）待指派",
+        mission: "建立授權節點、合作托管庫、保險、拍賣行、資金方、商家和專家網絡，擴大護照使用場景。",
+        define: ["節點資格、培訓、服務等級協議、審計、分成規則", "合作方應用程式介面（API）與資料交換協議", "合作方風險分級與退出機制"],
+        develop: ["合作方門戶、節點儀表板、收益賬本", "培訓材料、認證工作流", "API 金鑰（API keys）、使用追蹤、支持工單"],
+        establish: ["節點導入計劃", "商務拓展管道、合作合約、節點審計", "合作方成功團隊和培訓節奏"],
+        complete: ["節點可生成或認證護照", "護照後續交易可分成給節點", "合作網絡能帶來供給、需求、托管庫和資金"],
+        teams: ["商務拓展", "節點運營", "法務", "合規", "後端", "協議", "客戶成功"]
+      },
+      {
+        layer: "Trust",
+        accent: "var(--green)",
+        title: "人工智能生成內容（AIGC）內容引擎 + 社交媒體運營",
+        lead: "Jason Li / Neo Huang",
+        mission: "用人工智能生成內容（AIGC）快速生產內容，提升 RIVEX 在收藏品科技、鑑定、資產管理和金融化方向的外部影響力。",
+        define: ["內容支柱：產品演示（demo）、手錶 / 紅酒識別、資產管理、鑑定、借貸金融化", "渠道：社交媒體、短內容、品牌素材、合作方溝通材料", "審核規則：避免正式授信、收益和合作狀態的過度承諾"],
+        develop: ["人工智能生成內容（AIGC）模板庫", "多語言社交媒體貼文（post）、短視頻腳本、圖文素材", "內容日曆、發布節奏、數據追蹤"],
+        establish: ["Jason / Neo 運營節奏", "產品、金融、合規的內容審核接口", "資金方、合作方、VIP 溝通素材庫"],
+        complete: ["每週穩定產出社媒內容", "能把產品進展轉成外部可理解的故事", "內容能支撐資金方、合作方與早期用戶溝通"],
+        teams: ["人工智能生成內容（AIGC）", "社交媒體", "品牌", "增長", "產品", "運營"]
+      }
+    ];
+
+    const workstreamLiveStatus = {
+      "RIVEX 行動 App：拍攝建檔 / 專家解讀 / 資產管理 / 行動執行": {
+        owners: "Ruilin Zhao（產品與工程統籌） / Jason Li / Zhenxin Huang / Zhou Junfei",
+        currentStatus: "最小可行產品（MVP）基本完成，網頁 App（WebApp）與手機端主流程可用，體驗 / 界面（UX/UI）與圖表仍在優化。",
+        nextAction: "由 Ruilin 統一產品需求文件（PRD）、工程排期和驗收節奏；同步收斂移動端、Web 交互與價格圖表，借貸入口需標明原型 / 模擬數據。",
+        searchTags: "UX UI WebApp 手機 App 圖表 借貸 模擬數據 Ruilin 趙銳林 產品 工程"
+      },
+      "資產管家人工智能（AI）+ 專家大模型": {
+        owners: "Zhenxin Huang / Guo Jintao",
+        currentStatus: "手錶識別較成熟，對話式專家模型可給出簡單建議；紅酒等品類可用網搜補充。",
+        nextAction: "提升建議可信度、引用來源與人工覆核機制，降低高風險建議誤導。",
+        searchTags: "手表 紅酒 red wine wine AI 識別 專家大模型 網搜 RAG"
+      },
+      "資產追蹤 / 需求池 / 放盤提醒": {
+        owners: "直接負責人（DRI）待指派",
+        currentStatus: "需求池與追蹤仍屬下一階段市場能力，暫未看到明確執行負責人（owner）。",
+        nextAction: "等資產管理、數據質量和市場優先級明確後，再指派直接負責人（DRI）做低風險原型。",
+        searchTags: "追蹤 放盤 需求池 市場 Clifton Jason"
+      },
+      "資產數據核心 + 估值引擎": {
+        owners: "Ruilin Zhao / Long Jikang",
+        currentStatus: "手錶與紅酒數據庫已建，成交數據仍在爬取，手錶資料品質正在清洗。",
+        nextAction: "處理重複 ref、缺老款、欄位單位不一致，統一成交總表與估值輸出口徑。",
+        searchTags: "趙銳林 Ruilin 手表 紅酒 成交數據 數據庫 爬取 ref LTV"
+      },
+      "RIVEX Origin 確權硬件 + 鑑定實驗室": {
+        owners: "線上鑑定已有支援；硬件 / 實驗室直接負責人（DRI）待指派",
+        currentStatus: "線上鑑定流程已與資產管理聯動；Origin 硬件與線下實驗室仍未正式啟動。",
+        nextAction: "先把亨德利作為目標合作方（target partner）推進，線下標準作業流程（SOP）、證據包和實驗室負責人（owner）需另行指派。",
+        searchTags: "亨德利 LegitApp 鑑定 香港 手表 線下 target partner"
+      },
+      "RIVEX 評級系統 / 風險評分（RRS）+ 風險模型": {
+        owners: `Ruilin Zhao（借貸風控 / 貸款成數 LTV） / <span class="jim-highlight">Jim Kok（資產標準、RRS 金融化與結構化信用建議承接方向 target）</span>`,
+        currentStatus: "借貸風控與貸款成數（LTV）由 Ruilin 覆蓋；完整 RIVEX 風險評分（RRS）、清算價值、資產標準與模型審批口徑仍在定義前期。",
+        nextAction: "補正式金融產品與合規直接負責人（DRI），再把資產標準、RRS、清算價值、違約處理與資料品質約束寫成可審批規則。",
+        searchTags: "Ruilin 趙銳林 LTV 風控 借貸 清算"
+      },
+      "數字孿生護照協議": {
+        owners: `直接負責人（DRI）待指派 / <span class="jim-highlight">Jim 可共同設計鏈上資產透明度、系統化協議、交易分潤帳本與資產金融材料</span>`,
+        currentStatus: "協議與護照仍在後續階段；核心任務是把手錶等資產的標準化資料、鑑定紀錄、所有權與交易前認證轉成可追溯的鏈上 / 鏈下協議。",
+        nextAction: "先定義手錶元資料（metadata）、鑑定證據包、權益紀錄、交易分潤帳本和智能合約分潤邏輯，再把鏈上透明度轉成第三方財務公司與機構資金能理解的資產金融材料。",
+        searchTags: "護照 protocol passport blockchain 區塊鏈 智能合約 分潤 RWA ABS 手錶 透明度 鑑定 記錄 第三方財務公司 融資"
+      },
+      "智能代理網絡 + 工作流編排": {
+        owners: "直接負責人（DRI）待指派",
+        currentStatus: "對話與後端工具已有雛形，但完整工作流編排尚未形成執行任務。",
+        nextAction: "等鑑定、估值、放盤、借貸和托管任務清楚後，再指派工作流直接負責人（workflow DRI）。",
+        searchTags: "智能代理 workflow 工作流 AI 後端"
+      },
+      "托管庫 + 物聯網托管系統": {
+        owners: "直接負責人（DRI）待指派",
+        currentStatus: "托管與物理控制能力仍待合作網絡和線下設施落地後啟動。",
+        nextAction: "等線下鑑定和金融產品路徑更清楚後，再指派托管 / 保險 / 物流 DRI。",
+        searchTags: "托管庫 線下 保險 入庫"
+      },
+      "RIVEX 市場（Market）：驗證放盤 / 交易 / 以物易物": {
+        owners: "直接負責人（DRI）待指派",
+        currentStatus: "市場與放盤能力依賴護照、鑑定和需求池，目前不作正式交易上線承諾。",
+        nextAction: "先等待放盤准入、了解你的客戶（KYC）、資金托管和交易前認證規則明確，再指派直接負責人（DRI）。",
+        searchTags: "市場 放盤 交易 以物易物 Clifton"
+      },
+      "RIVEX 金融 + 黑卡": {
+        owners: `Ruilin Zhao（借貸風控） / <span class="jim-highlight">Jim（金融化 KPI、機構溝通節奏、第三方財務公司過渡、資產池與結構化信用 target）</span>`,
+        currentStatus: "資金方與借貸管理系統方向已開始；Ruilin 覆蓋借貸風控，Jim 可共同定義金融化、機構融資、第三方財務公司過渡、資產池與結構化信用；正式金融產品與合規直接負責人（DRI）尚需確認。",
+        nextAction: "先保留為系統原型 / 模擬數據展示；同時由 Jim 與團隊建立機構溝通名單、金融化 KPI、第三方財務公司候選清單和資產池假設，待鑑定准入、貸款成數（LTV）、清算和法律文件定義後再推正式授信。",
+        searchTags: "借貸 資金方 基金 直金 LTV 黑卡 Ruilin Jim 金融化 KPI 第三方財務公司 機構溝通 資產池 模擬數據"
+      },
+      "法務 / 合規 / 了解你的客戶（KYC）/ 反洗錢（AML）": {
+        owners: "直接負責人（DRI）待指派",
+        currentStatus: "金融、托管、借貸和交易正式上線前，需要補齊合約、披露與合規審查關卡；目前未標成執行中。",
+        nextAction: "先決定外部律所 / 合規顧問接入方式，再拆借貸、鑑定合作和數據使用任務。",
+        searchTags: "法務 合規 KYC AML 借貸 合約"
+      },
+      "資安 / 開發維運（DevOps）/ 數據治理": {
+        owners: "直接負責人（DRI）待指派",
+        currentStatus: "工程安全與數據治理需要補強，但專職資安 / 開發維運（DevOps）執行任務尚未明確。",
+        nextAction: "先列出審計日誌、權限矩陣、備份與資料來源標註的最低要求，再指派負責人（owner）。",
+        searchTags: "資安 DevOps 數據治理 Ruilin API"
+      },
+      "護照節點 + 合作方網絡": {
+        owners: `直接負責人（DRI）待指派 / <span class="jim-highlight">Jim 可共同設計鏈上護照節點、交易分潤、智能合約分潤、第三方財務公司過渡與機構資金敘事</span>`,
+        currentStatus: "合作方網絡正在建立方向，亨德利是線下鑑定目標合作方（target partner），資金方已開始接觸；節點網絡仍未正式負責人化（owner 化）。",
+        nextAction: "先分清鑑定、資金、交易、托管、保險五類合作方，再逐類指派直接負責人（DRI）。",
+        searchTags: "合作方 亨德利 資金方 節點 target partner 第三方財務公司 Jim"
+      },
+      "人工智能生成內容（AIGC）內容引擎 + 社交媒體運營": {
+        owners: "Jason Li / Neo Huang",
+        currentStatus: "Jason 和 Neo 正在協助運營推廣與社交媒體內容，用人工智能生成內容（AIGC）快速出內容提升影響力。",
+        nextAction: "建立內容日曆、人工智能生成內容（AIGC）模板庫與審核節奏，把演示（demo）、鑑定、資產管理和借貸金融化故事轉成內容包。",
+        searchTags: "AIGC 社交媒體 social media 內容 推廣 運營 Jason Neo ProductHunt SEO 上線 增長"
+      }
+    };
+
+    const grid = document.getElementById("workstreamGrid");
+    const mindMapGrid = document.getElementById("mindMapGrid");
+    const ownerRoster = document.getElementById("ownerRoster");
+    const filterButtons = document.querySelectorAll("[data-filter]");
+    const searchInput = document.getElementById("searchInput");
+    const hasJimAccess = window.RivexAuth?.hasJimAccess?.() || false;
+    const layerLabels = {
+      Digital: "數字化層（Digital）",
+      Standard: "標準化層（Standard）",
+      System: "系統化層（System）",
+      Finance: "金融化層（Finance）",
+      Trust: "安全與生態層（Trust）"
+    };
+    let activeFilter = "all";
+
+    function containsJimText(value) {
+      return /jim|郝延山|hao yanshan|cso\s*\/\s*partner|purpose to confirm/i.test(stripHtml(value));
+    }
+
+    function cleanJimText(value) {
+      const text = String(value || "");
+      if (hasJimAccess || !containsJimText(text)) return text;
+
+      return text
+        .replace(/<span class="jim-highlight">.*?<\/span>/gi, "")
+        .replace(/[；;]?\s*Jim[^。；;]*[。；;]?/gi, "")
+        .replace(/[，,]?\s*Jim[^，,。；;]*[，,。；;]?/gi, "")
+        .replace(/[，,]?\s*郝延山[^，,。；;]*[，,。；;]?/g, "")
+        .replace(/\s+\/\s*$/, "")
+        .replace(/[，,；;]\s*$/, "")
+        .trim();
+    }
+
+    function cleanJimItems(items) {
+      if (hasJimAccess) return items || [];
+      return (items || [])
+        .filter(item => !containsJimText(item))
+        .map(cleanJimText)
+        .filter(Boolean);
+    }
+
+    function ownerLabel(ownerId) {
+      const owner = ownerDirectory[ownerId];
+      if (!owner) return ownerId;
+      if (ownerId === "hao_yanshan") return "Jim Kok（郝延山 / Hao Yanshan）";
+      return owner.localName ? `${owner.localName} / ${owner.name}` : owner.name;
+    }
+
+    function renderOwnerChips(ownerIds) {
+      if (!ownerIds || ownerIds.length === 0) {
+        return `<span class="owner-chip owner-chip-empty">直接負責人（DRI）待指派</span>`;
+      }
+      return ownerIds.map(ownerId => `<span class="owner-chip${ownerId === "hao_yanshan" ? " owner-chip-jim" : ""}">${ownerLabel(ownerId)}</span>`).join("");
+    }
+
+    function renderTargetChips(ownerIds) {
+      if (!hasJimAccess) return "";
+      if (!ownerIds || ownerIds.length === 0) return "";
+      return `
+        <div class="mindmap-target-row">
+          <span class="mindmap-target-label">建議承接方向（Target）</span>
+          ${ownerIds.map(ownerId => `<span class="owner-chip owner-chip-jim">${ownerLabel(ownerId)}</span>`).join("")}
+        </div>
+      `;
+    }
+
+    function renderMindMapDetail(title, items) {
+      const visibleItems = cleanJimItems(items);
+      if (!visibleItems.length) return "";
+      return `
+        <div class="mindmap-detail">
+          <h4>${title}</h4>
+          <ul>${visibleItems.map(item => `<li>${item}</li>`).join("")}</ul>
+        </div>
+      `;
+    }
+
+    function renderMindMapNode(node, index) {
+        const status = statusLabels[node.statusTone] || statusLabels.progress;
+        const isOpen = node.defaultOpen === true;
+        return `
+          <article class="mindmap-node${isOpen ? " is-open" : ""}" style="--tone: ${status.tone}">
+            <button class="mindmap-toggle" type="button" aria-expanded="${String(isOpen)}" aria-controls="mindmap-node-${node.id}">
+              <div class="mindmap-title-row">
+                <h3>${String(index + 1).padStart(2, "0")} ${node.title}</h3>
+                <span class="mindmap-caret" aria-hidden="true">+</span>
+              </div>
+              <span class="status-pill" style="--tone: ${status.tone}">${status.label}</span>
+              <div class="mindmap-owner-row">${renderOwnerChips(node.owners)}</div>
+              ${renderTargetChips(node.targetOwners)}
+              <p class="mindmap-node-summary">${cleanJimText(node.status)}</p>
+            </button>
+            <div class="mindmap-node-body" id="mindmap-node-${node.id}">
+              <p class="mindmap-node-summary">${cleanJimText(node.currentState)}</p>
+              <div class="mindmap-detail-grid">
+                ${renderMindMapDetail("已完成（Done）", node.done)}
+                ${renderMindMapDetail("下一步（Next）", node.next)}
+                ${renderMindMapDetail("卡點（Blockers）", node.blockers)}
+                ${renderMindMapDetail("來源（Source）", [`${node.sourceTag}`, `更新：${node.updatedAt}`])}
+              </div>
+            </div>
+          </article>
+        `;
+    }
+
+    function renderMindMap() {
+      const activeNodes = liveMindMapNodes.filter(node => node.owners && node.owners.length > 0);
+      const unassignedNodes = liveMindMapNodes.filter(node => !node.owners || node.owners.length === 0);
+      let index = 0;
+      const renderGroup = (title, note, nodes) => `
+        <div class="mindmap-group-heading"><span>${title}</span><span>${note}</span></div>
+        ${nodes.map(node => renderMindMapNode(node, index++)).join("")}
+      `;
+
+      mindMapGrid.innerHTML = [
+        renderGroup("正在執行（已有 DRI）", `${activeNodes.length} 個節點`, activeNodes),
+        renderGroup("待指派（待啟動能力）", `${unassignedNodes.length} 個節點`, unassignedNodes)
+      ].join("");
+
+      document.querySelectorAll(".mindmap-toggle").forEach(button => {
+        button.addEventListener("click", () => {
+          const node = button.closest(".mindmap-node");
+          const isOpen = node.classList.toggle("is-open");
+          button.setAttribute("aria-expanded", String(isOpen));
+        });
+      });
+    }
+
+    function renderOwnerRoster() {
+      if (!ownerRoster) return;
+      const visibleOwners = Object.entries(ownerDirectory)
+        .filter(([ownerId]) => hasJimAccess || ownerId !== "hao_yanshan")
+        .map(([, owner]) => owner);
+
+      ownerRoster.innerHTML = visibleOwners.map(owner => `
+        <article class="owner-roster-card">
+          <strong>${owner.localName ? `${owner.localName} / ${owner.name}` : owner.name}</strong>
+          <em>${owner.role}</em>
+          <span>${owner.modules.join(" · ")}</span>
+        </article>
+      `).join("");
+    }
+
+    function getWorkstreamStatus(item) {
+      return workstreamLiveStatus[item.title] || {
+        owners: "直接負責人（DRI）待指派",
+        currentStatus: "尚未在 OKR 中拆出明確負責人（owner），保持原藍圖規劃狀態。",
+        nextAction: "等待對應模組進入下一輪任務拆解。",
+        searchTags: ""
+      };
+    }
+
+    function streamLiveSummary(live) {
+      return `
+        <div class="stream-live-summary">
+          <div class="stream-live-item">
+            <h4>當前狀態（Current status）</h4>
+            <p>${cleanJimText(live.currentStatus)}</p>
+          </div>
+          <div class="stream-live-item">
+            <h4>直接負責人（DRI）</h4>
+            <p>${cleanJimText(live.owners)}</p>
+          </div>
+          <div class="stream-live-item">
+            <h4>下一步（Next action）</h4>
+            <p>${cleanJimText(live.nextAction)}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function block(title, items) {
+      return `
+        <div class="delivery-block">
+          <h4>${title}</h4>
+          <ul>${items.map(item => `<li>${item}</li>`).join("")}</ul>
+        </div>
+      `;
+    }
+
+    function stripHtml(value) {
+      return String(value || "").replace(/<[^>]*>/g, " ");
+    }
+
+    function escapeAttr(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function renderWorkstreams() {
+      grid.innerHTML = workstreams.map((item, index) => {
+        const live = getWorkstreamStatus(item);
+        const searchText = [
+          item.layer,
+          item.title,
+          item.lead,
+          item.mission,
+          cleanJimText(live.owners),
+          cleanJimText(live.currentStatus),
+          cleanJimText(live.nextAction),
+          hasJimAccess ? live.searchTags : cleanJimText(live.searchTags),
+          ...item.define,
+          ...item.develop,
+          ...item.establish,
+          ...item.complete,
+          ...item.teams
+        ].map(stripHtml).join(" ").toLowerCase();
+        return `
+        <article class="stream-card" data-layer="${item.layer}" data-search="${escapeAttr(searchText)}" style="--accent: ${item.accent}">
+          <header class="stream-header">
+            <div class="stream-meta"><span>${layerLabels[item.layer] || item.layer}</span><span>直接負責人（DRI）：${cleanJimText(live.owners)}</span></div>
+            <h3>${String(index + 1).padStart(2, "0")} ${item.title}</h3>
+            <p>${item.mission}</p>
+          </header>
+          ${streamLiveSummary(live)}
+          <details class="stream-details">
+            <summary>查看共建交付拆解（Delivery breakdown）</summary>
+            <div class="delivery-grid">
+              ${block("需要定義的標準", item.define)}
+              ${block("需要建設的能力", item.develop)}
+              ${block("需要設立的網絡", item.establish)}
+              ${block("合作驗收標準", item.complete)}
+            </div>
+          </details>
+          <div class="team-strip">
+            ${item.teams.map(team => `<span class="chip">${team}</span>`).join("")}
+          </div>
+        </article>
+      `;
+      }).join("");
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const query = searchInput.value.trim().toLowerCase();
+      document.querySelectorAll(".stream-card").forEach(card => {
+        const matchesLayer = activeFilter === "all" || card.dataset.layer === activeFilter;
+        const matchesSearch = !query || card.dataset.search.includes(query);
+        card.classList.toggle("hidden", !(matchesLayer && matchesSearch));
+      });
+    }
+
+    filterButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        activeFilter = button.dataset.filter;
+        filterButtons.forEach(item => item.classList.remove("active"));
+        button.classList.add("active");
+        applyFilters();
+      });
+    });
+
+    searchInput.addEventListener("input", applyFilters);
+    renderMindMap();
+    renderOwnerRoster();
+    renderWorkstreams();
+
+    document.querySelectorAll("[data-logout]").forEach(button => {
+      button.addEventListener("click", () => {
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch (error) {
+          // Static preview can still return to the entry page if storage is unavailable.
+        }
+        window.location.href = "index.html?logout=1";
+      });
+    });
+  </script>
+</body>
+</html>

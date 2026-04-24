@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RIVEX Access Login</title>
+  <script src="rivex-auth.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f6f3ea;
+      --muted: #aeb8c7;
+      --quiet: #737f90;
+      --line: rgba(255, 255, 255, 0.14);
+      --line-strong: rgba(255, 255, 255, 0.24);
+      --cyan: #36d6d8;
+      --gold: #e4b85c;
+      --green: #68d391;
+      --danger: #fb7185;
+      --radius: 8px;
+      --shadow: 0 26px 80px rgba(0, 0, 0, 0.52);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(5, 7, 11, 0.96), rgba(7, 9, 13, 0.99)),
+        linear-gradient(135deg, rgba(54, 214, 216, 0.1), transparent 34%, rgba(228, 184, 92, 0.1) 82%, transparent),
+        #05070b;
+      line-height: 1.6;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+      background-size: 68px 68px;
+      mask-image: linear-gradient(to bottom, black, transparent 76%);
+    }
+
+    .shell {
+      width: min(1040px, calc(100% - clamp(24px, 6vw, 72px)));
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 42px 0;
+      display: grid;
+      align-content: center;
+      gap: 34px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .mark {
+      width: 54px;
+      height: 54px;
+      border: 1px solid rgba(228, 184, 92, 0.55);
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      font-weight: 900;
+      font-size: 23px;
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 21px;
+      line-height: 1.1;
+    }
+
+    .brand span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .login-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .intro {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.035);
+      padding: clamp(26px, 5vw, 42px);
+      min-height: 420px;
+      display: grid;
+      align-content: space-between;
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      color: var(--gold);
+      font-weight: 900;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(38px, 6vw, 68px);
+      line-height: 1.04;
+    }
+
+    p {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+      max-width: 660px;
+    }
+
+    .access-points {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 32px;
+    }
+
+    .access-points span {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 8px 11px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .panel {
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035)),
+        rgba(16, 20, 28, 0.88);
+      box-shadow: var(--shadow);
+      padding: clamp(22px, 4vw, 34px);
+      display: grid;
+      gap: 24px;
+      align-content: center;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.16;
+    }
+
+    .field {
+      display: grid;
+      gap: 10px;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    input {
+      width: 100%;
+      min-height: 56px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      color: var(--ink);
+      background: rgba(3, 7, 12, 0.72);
+      padding: 0 16px;
+      font-size: 18px;
+      font-weight: 900;
+      outline: none;
+      text-transform: uppercase;
+    }
+
+    input:focus {
+      border-color: rgba(54, 214, 216, 0.8);
+      box-shadow: 0 0 0 3px rgba(54, 214, 216, 0.14);
+    }
+
+    .submit {
+      min-height: 54px;
+      border: 1px solid var(--cyan);
+      border-radius: var(--radius);
+      color: #031015;
+      background: var(--cyan);
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 950;
+      transition: transform 0.18s ease, filter 0.18s ease;
+    }
+
+    .submit:hover {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+    }
+
+    .message {
+      min-height: 24px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .message.error {
+      color: var(--danger);
+    }
+
+    .message.success {
+      color: var(--green);
+    }
+
+    .fine-print {
+      margin: 0;
+      color: var(--quiet);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .login-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .intro {
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="brand">
+      <div class="mark">R</div>
+      <div>
+        <strong>RIVEX Group</strong>
+        <span>Invite-only portal</span>
+      </div>
+    </header>
+
+    <section class="login-layout">
+      <div class="intro">
+        <div>
+          <div class="eyebrow">Access Control</div>
+          <h1>输入邀请码后进入 RIVEX 资料入口。</h1>
+          <p>普通访问会看到 RIVEX 白皮书、蓝图和任务系统公开版本；Jim 专属访问会额外打开 Jim 共建角色與合作方式確認页和问卷。</p>
+        </div>
+        <div class="access-points" aria-label="访问范围">
+          <span>Whitepaper</span>
+          <span>Blueprint</span>
+          <span>Task System</span>
+          <span>Role-specific Brief</span>
+        </div>
+      </div>
+
+      <form class="panel" id="loginForm">
+        <div>
+          <div class="eyebrow">Invitation</div>
+          <h2>请输入你的访问邀请码</h2>
+        </div>
+        <div class="field">
+          <label for="inviteCode">Invite code</label>
+          <input id="inviteCode" name="inviteCode" type="password" autocomplete="off" placeholder="Access code" required>
+        </div>
+        <button class="submit" type="submit">进入入口（Enter Portal）</button>
+        <div class="message" id="loginMessage" role="status"></div>
+        <p class="fine-print">访问权限只用于区分展示范围。Jim 相关内容只会在专属访问下显示。</p>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("loginForm");
+    const input = document.getElementById("inviteCode");
+    const message = document.getElementById("loginMessage");
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("logout") === "1") {
+      message.textContent = "已登出。重新输入邀请码即可进入。";
+      message.className = "message success";
+    } else if (params.get("reason") === "login_required") {
+      message.textContent = "请先输入邀请码再查看资料。";
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const session = window.RivexAuth.signIn(input.value);
+
+      if (!session) {
+        message.textContent = "邀请码不正确，请检查后重试。";
+        message.className = "message error";
+        input.select();
+        return;
+      }
+
+      if (session.role === "jim") {
+        window.location.href = "index.html?access=jim";
+        return;
+      }
+
+      window.location.href = "index.html?access=standard";
+    });
+  </script>
+</body>
+</html>
