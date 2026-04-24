@@ -324,8 +324,6 @@
       <p id="heroLead">這裡按閱讀順序整理 RIVEX 目前的業務架構、落地藍圖、任務系統與角色確認資料。建議先看整體架構，再進入對應的專項頁面。</p>
     </section>
 
-    <div class="access-notice" id="accessNotice" hidden>当前邀请码为普通版本，Jim 专属角色页和问卷只在 JIM-MOCE 访问下开放。</div>
-
     <section class="reader-path" data-jim-only>
       <div>
         <strong>Jim 建議閱讀順序</strong>
@@ -387,7 +385,6 @@
     <footer>RIVEX Partner Confirmation Portal / Whitepaper, blueprint, task system and role confirmation</footer>
   </main>
   <script>
-    const params = new URLSearchParams(window.location.search);
     const session = window.RivexAuth?.getSession?.();
     const isJim = session?.role === "jim";
 
@@ -397,11 +394,6 @@
       document.getElementById("heroEyebrow").textContent = "Jim Role & Cooperation Confirmation";
       document.getElementById("heroTitle").textContent = "Jim，歡迎進入 RIVEX 共建資料入口";
       document.getElementById("heroLead").textContent = "這裡是給你進入 RIVEX 下一階段共建前的閱讀路徑。建議先快速看完整體營運地圖、落地藍圖和任務系統，再進入你的共建角色與合作方式確認頁與問卷，把資產標準、系統協議、鏈上交易分潤、金融化、資源協同和里程碑談清楚。";
-    }
-
-    if (params.get("access") === "standard") {
-      const notice = document.getElementById("accessNotice");
-      if (notice) notice.hidden = false;
     }
   </script>
 </body>
