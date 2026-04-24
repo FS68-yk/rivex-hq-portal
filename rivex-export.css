@@ -1,49 +1,82 @@
-.rivex-export-dock {
-  position: fixed;
-  right: clamp(16px, 2.4vw, 28px);
-  bottom: clamp(16px, 2.4vw, 28px);
+.rivex-export-inline {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.rivex-export-trigger {
+  min-height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #aeb8c7;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  white-space: nowrap;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.rivex-export-trigger:hover,
+.rivex-export-trigger[aria-expanded="true"] {
+  color: #f6f3ea;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.rivex-export-trigger svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.rivex-export-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
   z-index: 120;
-  width: min(320px, calc(100vw - 32px));
+  width: min(250px, calc(100vw - 32px));
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
-    rgba(10, 14, 20, 0.92);
+    rgba(10, 14, 20, 0.94);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
   backdrop-filter: blur(18px);
-  padding: 14px;
+  padding: 12px;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease;
 }
 
-.rivex-export-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+.rivex-export-inline.is-open .rivex-export-panel {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
-.rivex-export-kicker {
+.rivex-export-panel-title {
   display: block;
-  color: #e4b85c;
-  font-size: 11px;
+  color: #f6f3ea;
+  font-size: 13px;
   font-weight: 900;
-  text-transform: uppercase;
   margin-bottom: 4px;
 }
 
-.rivex-export-title {
-  display: block;
-  color: #f6f3ea;
-  font-size: 14px;
-  font-weight: 900;
-  line-height: 1.3;
-}
-
-.rivex-export-copy {
+.rivex-export-panel-copy {
+  margin: 0 0 10px;
   color: #aeb8c7;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.5;
-  margin: 0 0 12px;
 }
 
 .rivex-export-actions {
@@ -53,19 +86,19 @@
 }
 
 .rivex-export-button {
-  min-height: 42px;
+  min-height: 38px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
   color: #f6f3ea;
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 7px;
   transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
 }
 
@@ -76,8 +109,8 @@
 }
 
 .rivex-export-button svg {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   flex: 0 0 auto;
 }
 
@@ -94,10 +127,10 @@
 }
 
 .rivex-export-status {
-  margin-top: 10px;
-  min-height: 18px;
+  margin-top: 8px;
+  min-height: 15px;
   color: #7f8b9b;
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.4;
 }
 
@@ -110,16 +143,23 @@
 }
 
 @media (max-width: 720px) {
-  .rivex-export-dock {
-    right: 16px;
-    left: 16px;
-    width: auto;
-    bottom: 16px;
+  .rivex-export-panel {
+    right: 0;
+    width: min(220px, calc(100vw - 24px));
+  }
+
+  .rivex-export-trigger span {
+    display: none;
+  }
+
+  .rivex-export-trigger {
+    min-width: 36px;
+    padding: 0 9px;
   }
 }
 
 @media print {
-  .rivex-export-dock {
+  .rivex-export-inline {
     display: none !important;
   }
 }

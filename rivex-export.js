@@ -28,7 +28,8 @@
   };
 
   const baseSkipSelectors = [
-    ".rivex-export-dock",
+    ".rivex-export-inline",
+    ".rivex-export-panel",
     ".rivex-video-background",
     "script",
     "style",
@@ -494,36 +495,83 @@
     return button;
   }
 
-  function mountDock() {
-    if (document.getElementById("rivexExportDock")) return;
+  function findMountTarget() {
+    return document.querySelector(".top-actions") || document.querySelector(".session-pill");
+  }
+
+  function mountInlineExport() {
+    if (document.getElementById("rivexExportInline")) return;
     if (!exportRoot()) return;
 
-    const dock = document.createElement("aside");
-    dock.id = "rivexExportDock";
-    dock.className = "rivex-export-dock";
-    dock.setAttribute("aria-label", "页面导出工具");
-    dock.innerHTML = `
-      <div class="rivex-export-head">
-        <div>
-          <span class="rivex-export-kicker">Export</span>
-          <span class="rivex-export-title">下载复用版资料</span>
-        </div>
+    const mountTarget = findMountTarget();
+    if (!mountTarget) return;
+
+    const wrapper = document.createElement("div");
+    wrapper.id = "rivexExportInline";
+    wrapper.className = "rivex-export-inline";
+    wrapper.setAttribute("data-export-skip", "true");
+    wrapper.innerHTML = `
+      <button class="rivex-export-trigger" id="rivexExportTrigger" type="button" aria-expanded="false" aria-controls="rivexExportPanel" title="下载当前页面资料">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3v12"></path>
+          <path d="m7 10 5 5 5-5"></path>
+          <path d="M5 21h14"></path>
+        </svg>
+        <span>导出</span>
+      </button>
+      <div class="rivex-export-panel" id="rivexExportPanel" aria-label="页面导出工具">
+        <span class="rivex-export-panel-title">下载当前页</span>
+        <p class="rivex-export-panel-copy">导出为同事可复用的 Markdown 或 PDF。</p>
+        <div class="rivex-export-actions"></div>
+        <div class="rivex-export-status" id="rivexExportStatus">只在需要时展开显示。</div>
       </div>
-      <p class="rivex-export-copy">把当前页面整理成同事可复用的清晰文档：下载 Markdown，或打开打印版保存为 PDF。</p>
-      <div class="rivex-export-actions"></div>
-      <div class="rivex-export-status" id="rivexExportStatus">会自动按当前页面整理正文结构。</div>
     `;
 
-    const actionWrap = dock.querySelector(".rivex-export-actions");
+    const actionWrap = wrapper.querySelector(".rivex-export-actions");
     const mdButton = createButton("下载 MD", "markdown", '<path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path>');
     const pdfButton = createButton("保存 PDF", "pdf", '<path d="M6 9V2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"></path><path d="M14 2v6h6"></path><path d="M8 13h8"></path><path d="M8 17h6"></path>');
+    const trigger = wrapper.querySelector("#rivexExportTrigger");
 
     mdButton.addEventListener("click", exportMarkdown);
     pdfButton.addEventListener("click", openPrintPreview);
 
     actionWrap.append(mdButton, pdfButton);
-    document.body.appendChild(dock);
+    const logout = mountTarget.querySelector("[data-logout]");
+    if (logout) {
+      mountTarget.insertBefore(wrapper, logout);
+    } else {
+      mountTarget.appendChild(wrapper);
+    }
+
+    function closeMenu() {
+      wrapper.classList.remove("is-open");
+      trigger.setAttribute("aria-expanded", "false");
+    }
+
+    function toggleMenu() {
+      const nextState = !wrapper.classList.contains("is-open");
+      wrapper.classList.toggle("is-open", nextState);
+      trigger.setAttribute("aria-expanded", String(nextState));
+    }
+
+    trigger.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleMenu();
+    });
+
+    wrapper.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!wrapper.contains(event.target)) closeMenu();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMenu();
+    });
   }
 
-  onReady(mountDock);
+  onReady(mountInlineExport);
 })();

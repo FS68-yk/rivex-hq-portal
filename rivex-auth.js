@@ -1,6 +1,6 @@
 (function () {
   const AUTH_KEY = "rivex-portal-auth-v1";
-  const SHARED_ASSET_VERSION = "20260424a";
+  const SHARED_ASSET_VERSION = "20260424b";
   const EXPORT_PAGES = new Set([
     "index.html",
     "rivex-group-operating-map.html",
