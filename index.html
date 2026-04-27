@@ -380,6 +380,18 @@
           <span>→</span>
         </a>
       </article>
+
+      <article class="entry-card" style="--accent: #ff8aa5" data-admin-only>
+        <div>
+          <span class="step-label">Admin</span>
+          <h2>Jim 問卷進度與答案總覽</h2>
+          <p>從管理視角查看 Jim 的最新填寫進度、當前停留模塊、各題答案與最終提交狀態。這個頁面會跟線上問卷同步，方便你後續跟進討論。</p>
+        </div>
+        <a class="button" href="rivex-admin-dashboard.html">
+          <span>進入 Admin 後台</span>
+          <span>→</span>
+        </a>
+      </article>
     </section>
 
     <footer>RIVEX Partner Confirmation Portal / Whitepaper, blueprint, task system and role confirmation</footer>
@@ -387,6 +399,7 @@
   <script>
     const session = window.RivexAuth?.getSession?.();
     const isJim = session?.role === "jim";
+    const isAdmin = session?.role === "admin";
 
     if (isJim) {
       document.title = "Jim 共建角色與合作方式確認 - RIVEX";
@@ -394,6 +407,12 @@
       document.getElementById("heroEyebrow").textContent = "Jim Role & Cooperation Confirmation";
       document.getElementById("heroTitle").textContent = "Jim，歡迎進入 RIVEX 共建資料入口";
       document.getElementById("heroLead").textContent = "這裡是給你進入 RIVEX 下一階段共建前的閱讀路徑。建議先快速看完整體營運地圖、落地藍圖和任務系統，再進入你的共建角色與合作方式確認頁與問卷，把資產標準、系統協議、鏈上交易分潤、金融化、資源協同和里程碑談清楚。";
+    } else if (isAdmin) {
+      document.title = "RIVEX Admin Portal";
+      document.getElementById("brandSubtitle").textContent = "Admin Review Portal";
+      document.getElementById("heroEyebrow").textContent = "RIVEX Admin Review";
+      document.getElementById("heroTitle").textContent = "RIVEX 管理資料入口";
+      document.getElementById("heroLead").textContent = "這裡保留管理視角所需的核心資料入口。除了營運地圖、藍圖與任務系統外，你也可以直接查看 Jim 問卷的最新進度、答案與提交結果，方便後續安排討論與決策。";
     }
   </script>
 </body>

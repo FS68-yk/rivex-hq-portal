@@ -1,12 +1,13 @@
 (function () {
   const AUTH_KEY = "rivex-portal-auth-v1";
-  const SHARED_ASSET_VERSION = "20260424b";
+  const SHARED_ASSET_VERSION = "20260427b";
   const EXPORT_PAGES = new Set([
     "index.html",
     "rivex-group-operating-map.html",
     "rivex-development-blueprint.html",
     "rivex-department-task-system.html",
-    "rivex-jim-kok-role.html"
+    "rivex-jim-kok-role.html",
+    "rivex-admin-dashboard.html"
   ]);
   const INVITES = {
     MOCE86: {
@@ -16,6 +17,10 @@
     "JIM-MOCE": {
       role: "jim",
       label: "Jim 专属访问"
+    },
+    ADMIN86: {
+      role: "admin",
+      label: "Admin 后台访问"
     }
   };
 
@@ -28,7 +33,7 @@
       const raw = localStorage.getItem(AUTH_KEY);
       if (!raw) return null;
       const session = JSON.parse(raw);
-      if (!session || !["standard", "jim"].includes(session.role)) return null;
+      if (!session || !["standard", "jim", "admin"].includes(session.role)) return null;
       return session;
     } catch (error) {
       return null;
@@ -85,7 +90,12 @@
       return false;
     }
 
-    if (requiredRole === "jim" && session.role !== "jim") {
+    if (requiredRole === "jim" && !["jim", "admin"].includes(session.role)) {
+      window.location.replace("index.html?access=standard");
+      return false;
+    }
+
+    if (requiredRole === "admin" && session.role !== "admin") {
       window.location.replace("index.html?access=standard");
       return false;
     }
@@ -94,7 +104,11 @@
   }
 
   function hasJimAccess() {
-    return readSession()?.role === "jim";
+    return ["jim", "admin"].includes(readSession()?.role);
+  }
+
+  function hasAdminAccess() {
+    return readSession()?.role === "admin";
   }
 
   function injectVideoBackground() {
@@ -172,8 +186,14 @@
       node.textContent = session?.label || "未登录";
     });
 
-    if (role !== "jim") {
+    if (!["jim", "admin"].includes(role)) {
       document.querySelectorAll("[data-jim-only], .jim-highlight").forEach((node) => {
+        node.remove();
+      });
+    }
+
+    if (role !== "admin") {
+      document.querySelectorAll("[data-admin-only]").forEach((node) => {
         node.remove();
       });
     }
@@ -203,6 +223,7 @@
     clearSession,
     requireRole,
     hasJimAccess,
+    hasAdminAccess,
     isAuthenticated: () => Boolean(readSession())
   };
 })();
