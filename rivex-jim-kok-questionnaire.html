@@ -624,14 +624,12 @@
 
   <script>
     const ALIGNMENT_STORAGE_KEY = "rivex-jim-alignment-form-v1";
-    const RECIPIENT_STORAGE_KEY = "rivex-jim-alignment-recipient-v1";
-    const LAST_REPORT_KEY = "rivex-jim-alignment-last-report-v1";
-    const DEFAULT_REPORT_EMAIL = "yik@moce.io";
-    const EMAIL_FUNCTION_ENDPOINT = "/.netlify/functions/send-jim-questionnaire";
     const STATE_FUNCTION_ENDPOINT = "/.netlify/functions/rivex-questionnaire-state";
     const RESPONDENT_ID = "jim-kok";
     const RESPONDENT_NAME = "Jim Kok";
     const REMOTE_SYNC_DELAY = 900;
+    const PORTAL_ORIGIN = "https://rivexhq.netlify.app";
+    const ONLINE_QUESTIONNAIRE_URL = `${PORTAL_ORIGIN}/rivex-jim-kok-questionnaire.html`;
     const schema = window.RivexJimQuestionnaire || { modules: [], questions: [] };
     const modules = schema.modules;
     const questions = schema.questions;
@@ -821,9 +819,6 @@
           currentIndex,
           answers
         }));
-        if (snapshot.report) {
-          safeSet(LAST_REPORT_KEY, snapshot.report);
-        }
         saveStatus.textContent = `已同步线上草稿：${new Date(remoteUpdatedAt).toLocaleString("zh-CN", { hour12: false })}`;
       } catch (error) {
         // Keep the local draft flow uninterrupted even when online sync is unavailable.
@@ -1007,20 +1002,15 @@
     }
 
     function renderFinal() {
-      const recipient = safeGet(RECIPIENT_STORAGE_KEY) || DEFAULT_REPORT_EMAIL;
       wizardMount.innerHTML = `
         <section class="final-card">
           <div>
             <div class="eyebrow">Submit</div>
             <h2>提交前确认</h2>
-            <p>感谢你认真填写这份表单。这份表单不是形式流程，而是用于更准确地理解彼此对方向、角色、投入方式和长期合作结构的判断。点击下方按钮后，页面会生成完整报告并自动发送给 Yik；如果当前只是本地文件预览，页面会复制报告并打开邮件草稿作为备用。</p>
+            <p>感谢你认真填写这份表单。这份表单不是形式流程，而是帮助双方更准确地理解彼此对方向、角色、投入方式和长期合作结构的判断。点击下方按钮后，当前答案会作为正式版本同步到 RIVEX 管理后台，供下一次讨论直接使用。</p>
           </div>
           <div class="submit-grid">
-            <label class="field-label">
-              Report recipient email（Yik）
-              <input class="text-input" id="reportRecipient" type="email" value="${escapeHtml(recipient)}">
-            </label>
-            <button class="button primary" type="button" data-action="submit">生成报告并发送给 Yik</button>
+            <button class="button primary" type="button" data-action="submit">提交并同步到管理后台</button>
           </div>
           <div class="wizard-actions">
             <div class="action-group">
@@ -1031,15 +1021,8 @@
               <button class="button danger" type="button" data-action="clear">清空草稿</button>
             </div>
           </div>
-          <div class="report-preview" id="reportPreview" hidden>
-            <button class="button" type="button" data-action="copy">复制完整报告</button>
-            <textarea class="report-output" id="reportOutput" readonly></textarea>
-          </div>
         </section>
       `;
-      document.getElementById("reportRecipient").addEventListener("input", (event) => {
-        safeSet(RECIPIENT_STORAGE_KEY, event.target.value.trim());
-      });
     }
 
     function bindQuestionEvents(question) {
@@ -1101,7 +1084,6 @@
       latestLocalUpdatedAt = new Date().toISOString();
       lastRemoteFingerprint = "";
       safeRemove(ALIGNMENT_STORAGE_KEY);
-      safeRemove(LAST_REPORT_KEY);
       saveStatus.textContent = "草稿已清空";
       if (canUseRemoteState()) {
         clearTimeout(remoteSyncTimer);
@@ -1165,94 +1147,41 @@
       return lines.join("\n");
     }
 
-    async function copyReport(text) {
-      const output = document.getElementById("reportOutput");
-      try {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(text);
-        } else if (output) {
-          output.value = text;
-          output.focus();
-          output.select();
-          document.execCommand("copy");
-        }
-        saveStatus.textContent = "完整报告已复制，可直接粘贴到邮件或聊天中。";
-      } catch (error) {
-        saveStatus.textContent = "报告已生成，复制可能需要手动选择文本。";
-      }
-    }
-
-    function openEmailDraft(recipient, report) {
-      const subject = "Rivex / Jim Role & Cooperation Confirmation Form";
-      const fullMailto = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(report)}`;
-      if (fullMailto.length < 22000) {
-        window.location.href = fullMailto;
-        return;
-      }
-
-      const shorterBody = [
-        "Hi Yik,",
-        "",
-        "Jim has completed the Rivex / Jim Role & Cooperation Confirmation Form.",
-        "The full report was generated and copied from the page. Please paste the copied report into this email before sending.",
-        "",
-        "Best,"
-      ].join("\n");
-      window.location.href = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shorterBody)}`;
-    }
-
-    async function sendReportEmail(recipient, report, submittedAt) {
-      if (window.location.protocol === "file:") {
-        throw new Error("本地文件预览无法调用 Netlify Function");
-      }
-
-      const response = await fetch(EMAIL_FUNCTION_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          recipient,
-          report,
-          submittedAt,
-          source: window.location.href
-        })
-      });
-
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || `Email function failed with ${response.status}`);
-      }
-
-      return payload;
+    function renderWebOnlyGate() {
+      if (!wizardMount) return;
+      wizardMount.innerHTML = `
+        <section class="final-card">
+          <div>
+            <div class="eyebrow">Web Portal Only</div>
+            <h2>请使用 RIVEX 线上页面填写这份问卷。</h2>
+            <p>为了确保答案能自动同步到管理后台，这份问卷只接受网页端填写。请从正式入口打开线上版本后继续填写，管理端才可以实时看到你的进度和最终答案。</p>
+          </div>
+          <div class="submit-grid">
+            <a class="button primary" href="${ONLINE_QUESTIONNAIRE_URL}">打开线上问卷</a>
+          </div>
+        </section>
+      `;
+      progressText.textContent = "请切换到线上版本填写";
+      progressBar.style.setProperty("--progress", "0%");
+      moduleTabs.innerHTML = "";
+      saveStatus.textContent = "当前是本地预览，不会写入管理后台。";
     }
 
     async function submitReport() {
-      const recipientField = document.getElementById("reportRecipient");
       const submitButton = wizardMount.querySelector('[data-action="submit"]');
-      const recipient = (recipientField?.value || DEFAULT_REPORT_EMAIL).trim();
-      if (!recipient) {
-        saveStatus.textContent = "请先填写 Yik 的收件邮箱。";
-        recipientField?.focus();
+      if (!canUseRemoteState()) {
+        renderWebOnlyGate();
         return;
       }
 
       if (submitButton) {
         submitButton.disabled = true;
-        submitButton.textContent = "正在生成并发送...";
+        submitButton.textContent = "正在提交...";
       }
 
-      safeSet(RECIPIENT_STORAGE_KEY, recipient);
       saveDraft("提交前已保存");
       const report = buildReport();
       const submittedAt = new Date().toISOString();
-      safeSet(LAST_REPORT_KEY, report);
-      const preview = document.getElementById("reportPreview");
-      const output = document.getElementById("reportOutput");
-      if (preview && output) {
-        output.value = report;
-        preview.hidden = false;
-      }
 
       try {
         clearTimeout(remoteSyncTimer);
@@ -1262,17 +1191,13 @@
           currentIndex: questions.length,
           updatedAt: submittedAt
         });
-        saveStatus.textContent = "正在发送报告给 Yik...";
-        const result = await sendReportEmail(recipient, report, submittedAt);
-        saveStatus.textContent = `报告已发送到 ${result.recipient || recipient}。`;
+        saveStatus.textContent = "已提交完成，管理后台已收到最新答案。";
       } catch (error) {
-        await copyReport(report);
-        saveStatus.textContent = `自动发送未完成：${error.message}。完整报告已复制，并将打开邮件草稿作为备用。`;
-        openEmailDraft(recipient, report);
+        saveStatus.textContent = `提交未完成：${error.message}。请刷新后重试。`;
       } finally {
         if (submitButton) {
           submitButton.disabled = false;
-          submitButton.textContent = "生成报告并发送给 Yik";
+          submitButton.textContent = "提交并同步到管理后台";
         }
       }
     }
@@ -1295,16 +1220,13 @@
       if (action === "save") saveDraft("已手动保存");
       if (action === "clear") clearDraft();
       if (action === "submit") submitReport();
-      if (action === "copy") copyReport(document.getElementById("reportOutput")?.value || buildReport());
     });
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const recipientFromUrl = urlParams.get("to") || urlParams.get("email");
-    if (recipientFromUrl) {
-      safeSet(RECIPIENT_STORAGE_KEY, recipientFromUrl);
-    }
-
     async function initializeQuestionnaire() {
+      if (!canUseRemoteState()) {
+        renderWebOnlyGate();
+        return;
+      }
       loadDraft();
       render();
       await restoreRemoteDraft();
